@@ -2,137 +2,125 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>종가 감시기 — 전일 대비 변동 알림</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="종가감시">
+<meta name="theme-color" content="#0E1116">
+<title>종가 감시</title>
 <style>
   :root{
-    --ink:#0E1116;
-    --panel:#161A21;
-    --panel-2:#1D222B;
-    --line:#2A313D;
-    --text:#E9EDF3;
-    --muted:#8C96A6;
-    --up:#FF5A4E;
-    --down:#4D8DFF;
-    --flat:#9AA3B2;
-    --signal:#F5C451;
-    --ok:#3ECf8E;
-    --r:14px;
-    --mono:"SFMono-Regular",Consolas,"Roboto Mono","DejaVu Sans Mono",monospace;
+    --ink:#0E1116; --panel:#171C24; --panel2:#212832; --line:#2E3642;
+    --text:#EDF1F7; --muted:#8B95A6;
+    --up:#FF564A; --down:#4D8DFF; --flat:#98A2B3;
+    --signal:#F5C451; --ok:#3ECF8E;
+    --mono:"SFMono-Regular",Consolas,"Roboto Mono",monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    --safe-b:env(safe-area-inset-bottom,0px);
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{
-    background:var(--ink);
-    color:var(--text);
-    font-family:var(--sans);
-    font-size:16px;
-    line-height:1.5;
-    -webkit-text-size-adjust:100%;
-    padding:0 0 48px;
-  }
-  .wrap{max-width:760px;margin:0 auto;padding:0 16px}
-
-  /* ── header ─────────────────────────────── */
-  header{
-    position:sticky;top:0;z-index:20;
-    background:rgba(14,17,22,.92);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-    padding-top:env(safe-area-inset-top);
-  }
-  .bar{display:flex;align-items:center;gap:12px;padding:12px 0}
-  .brand{font-size:18px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
-  .brand small{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.14em}
-  .spacer{flex:1}
-  .status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-family:var(--mono)}
-  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
-  .dot.live{background:var(--ok);box-shadow:0 0 0 0 rgba(62,207,142,.6);animation:pulse 2s infinite}
-  @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(62,207,142,0)}100%{box-shadow:0 0 0 0 rgba(62,207,142,0)}}
-
-  /* ── buttons / inputs ───────────────────── */
-  button{font-family:inherit;font-size:15px;cursor:pointer;border-radius:10px;border:1px solid var(--line);
-    background:var(--panel-2);color:var(--text);padding:11px 15px;font-weight:600;transition:.15s}
-  button:hover{border-color:#3c4655}
-  button:active{transform:translateY(1px)}
-  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-  .btn-run{background:var(--ok);border-color:var(--ok);color:#06231a;min-width:104px}
-  .btn-stop{background:var(--up);border-color:var(--up);color:#2a0a08}
-  .btn-ghost{background:transparent}
-  .btn-sm{padding:7px 11px;font-size:13px}
-  input,select{font-family:inherit;font-size:16px;color:var(--text);background:var(--panel);
-    border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
-  input::placeholder{color:#5d6675}
-  label{display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:0 0 6px}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;overscroll-behavior-y:none}
+  body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;
+    -webkit-text-size-adjust:100%;padding-bottom:calc(96px + var(--safe-b))}
+  .wrap{max-width:600px;margin:0 auto;padding:0 14px}
   .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-
-  /* ── panels ─────────────────────────────── */
-  section{margin-top:16px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-  .panel h2{margin:0 0 14px;font-size:13px;letter-spacing:.12em;color:var(--muted);font-weight:800;text-transform:uppercase}
-  .grid{display:grid;gap:12px}
+  button{font-family:inherit;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--text);padding:14px 16px;cursor:pointer;min-height:48px}
+  button:active{opacity:.7}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  input,select{font-family:inherit;font-size:16px;color:var(--text);background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:14px;width:100%;min-height:50px}
+  input::placeholder{color:#5C6675}
+  label{display:block;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:0 0 7px}
+  .grid{display:grid;gap:10px}
   .g2{grid-template-columns:1fr 1fr}
   .g3{grid-template-columns:1fr 1fr 1fr}
-  .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.6}
-  details.cfg summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
-    font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
-  details.cfg summary::-webkit-details-marker{display:none}
-  details.cfg summary::after{content:"▾";margin-left:auto;font-size:14px;transition:.2s}
-  details.cfg[open] summary::after{transform:rotate(180deg)}
-  details.cfg[open] .cfg-body{margin-top:16px}
-  .switch{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);
-    border-radius:10px;padding:11px 12px;font-size:14px;font-weight:600;cursor:pointer}
-  .switch input{width:18px;height:18px;accent-color:var(--signal);flex:none;padding:0}
 
-  /* ── watch cards ────────────────────────── */
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px;
-    position:relative;overflow:hidden}
-  .card.up{border-color:rgba(255,90,78,.55)}
-  .card.down{border-color:rgba(77,141,255,.55)}
-  .card.fire::before{content:"";position:absolute;inset:0;background:var(--signal);opacity:0;
-    animation:flash 1s ease-out 3;pointer-events:none}
-  @keyframes flash{0%{opacity:.16}100%{opacity:0}}
-  .card-top{display:flex;align-items:flex-start;gap:12px}
-  .tick{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.02em}
-  .tick em{font-style:normal;color:var(--muted);font-size:12px;display:block;margin-top:2px;font-family:var(--sans);font-weight:600}
+  /* 상단 */
+  header{position:sticky;top:0;z-index:30;background:rgba(14,17,22,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+  .bar{display:flex;align-items:center;gap:10px;padding:12px 0;min-height:58px}
+  .brand{font-size:17px;font-weight:900;letter-spacing:-.02em}
+  .stat{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .dot{width:9px;height:9px;border-radius:50%;background:#48525f;flex:none}
+  .dot.live{background:var(--ok);animation:p 2s infinite}
+  @keyframes p{0%{box-shadow:0 0 0 0 rgba(62,207,142,.55)}70%{box-shadow:0 0 0 8px rgba(62,207,142,0)}100%{box-shadow:0 0 0 0 rgba(62,207,142,0)}}
+
+  /* 카드 */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-top:12px;position:relative;overflow:hidden}
+  .card.hitUp{border-color:var(--up);box-shadow:0 0 0 1px rgba(255,86,74,.35)}
+  .card.hitDown{border-color:var(--down);box-shadow:0 0 0 1px rgba(77,141,255,.35)}
+  .card.fire::after{content:"";position:absolute;inset:0;background:var(--signal);opacity:0;animation:fl .9s ease-out 4;pointer-events:none}
+  @keyframes fl{0%{opacity:.18}100%{opacity:0}}
+  .row1{display:flex;align-items:flex-start;gap:10px}
+  .nm{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
+  .cd{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:6px;align-items:center}
+  .badge{font-size:10px;font-weight:800;letter-spacing:.04em;border-radius:5px;padding:2px 6px;
+    border:1px solid var(--line);color:var(--muted)}
+  .badge.rt{color:var(--ok);border-color:rgba(62,207,142,.4)}
+  .badge.dl{color:var(--signal);border-color:rgba(245,196,81,.4)}
   .pct{margin-left:auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
-    font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em}
-  .pct span{display:block;font-size:13px;font-weight:600;margin-top:5px}
-  .u{color:var(--up)} .d{color:var(--down)} .f{color:var(--flat)}
-  .prices{display:flex;gap:0;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-  .prices div{flex:1}
-  .prices dt{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;margin-bottom:3px}
-  .prices dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:700}
+    font-size:36px;font-weight:800;line-height:1;letter-spacing:-.03em}
+  .pct i{display:block;font-style:normal;font-size:14px;font-weight:700;margin-top:6px}
+  .u{color:var(--up)}.d{color:var(--down)}.f{color:var(--flat)}
+  .px{display:flex;margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  .px div{flex:1}
+  .px dt{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-bottom:4px}
+  .px dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800}
+  /* 감시 게이지 */
+  .gg{margin-top:18px;height:38px;position:relative}
+  .tr{position:absolute;left:0;right:0;top:14px;height:9px;border-radius:5px;
+    background:linear-gradient(90deg,rgba(77,141,255,.32),rgba(152,162,179,.14) 42%,rgba(152,162,179,.14) 58%,rgba(255,86,74,.32))}
+  .zn{position:absolute;top:9px;height:19px;width:2px;background:#5A6473}
+  .zn b{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .zr{position:absolute;left:50%;top:11px;height:15px;width:1px;background:#454F5D}
+  .mk{position:absolute;top:10px;width:18px;height:18px;border-radius:50%;background:var(--flat);
+    border:3px solid var(--ink);transform:translateX(-50%);transition:left .6s cubic-bezier(.2,.8,.2,1)}
+  .mk.u{background:var(--up)}.mk.d{background:var(--down)}
+  .foot{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .foot .sp{flex:1}
+  .foot button{padding:8px 12px;min-height:36px;font-size:13px;background:transparent}
+  .err{color:var(--signal);font-family:var(--sans);font-weight:700;font-size:13px;line-height:1.4}
+  .empty{color:var(--muted);text-align:center;padding:44px 20px;font-size:15px;line-height:1.7}
 
-  /* signature: threshold gauge */
-  .gauge{margin-top:14px;height:34px;position:relative}
-  .track{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;
-    background:linear-gradient(90deg,rgba(77,141,255,.30),rgba(154,163,178,.16) 42%,rgba(154,163,178,.16) 58%,rgba(255,90,78,.30))}
-  .zone{position:absolute;top:8px;height:18px;width:2px;background:var(--muted);opacity:.75}
-  .zone b{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-family:var(--mono);
-    font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
-  .zero{position:absolute;left:50%;top:10px;height:14px;width:1px;background:#4a5464}
-  .marker{position:absolute;top:9px;width:16px;height:16px;border-radius:50%;background:var(--text);
-    border:3px solid var(--ink);transform:translateX(-50%);transition:left .5s cubic-bezier(.2,.8,.2,1)}
-  .marker.u{background:var(--up)} .marker.d{background:var(--down)}
-  .card-foot{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--mono)}
-  .card-foot .spacer{flex:1}
-  .err{color:var(--signal);font-family:var(--sans);font-weight:600}
-  .tag{font-size:11px;font-family:var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--muted)}
+  /* 하단 고정 바 */
+  .dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(14,17,22,.96);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:12px 14px calc(12px + var(--safe-b))}
+  .dock-in{max-width:600px;margin:0 auto;display:flex;gap:10px}
+  .dock button{flex:none;padding:15px 16px}
+  #runBtn{flex:1;background:var(--ok);border-color:var(--ok);color:#052318;font-size:17px;font-weight:900}
+  #runBtn.on{background:var(--up);border-color:var(--up);color:#2B0806}
 
-  /* ── log ────────────────────────────────── */
-  .log{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
-  .log li{display:flex;gap:11px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  /* 시트 */
+  .sheet{position:fixed;inset:0;z-index:50;display:none}
+  .sheet.open{display:block}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.62)}
+  .sheet-in{position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;
+    background:var(--panel);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+    padding:8px 16px calc(24px + var(--safe-b));animation:up .28s cubic-bezier(.2,.9,.3,1)}
+  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .handle{width:40px;height:4px;border-radius:2px;background:#3C4553;margin:8px auto 16px}
+  .sheet h2{margin:0 0 16px;font-size:19px;font-weight:900;letter-spacing:-.02em}
+  .fld{margin-bottom:14px}
+  .sw{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:12px;padding:14px 12px;font-size:14px;font-weight:700;min-height:50px}
+  .sw input{width:20px;height:20px;accent-color:var(--signal);flex:none;padding:0;min-height:0}
+  .hint{font-size:12.5px;color:var(--muted);line-height:1.65;margin:12px 0 0}
+  .hint b{color:#B6C0CF}
+  pre.diag{margin:12px 0 0;padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
+    font-family:var(--mono);font-size:11.5px;line-height:1.75;white-space:pre-wrap;color:var(--muted)}
+  /* 기록 */
+  .log{list-style:none;margin:0;padding:0}
+  .log li{display:flex;gap:10px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
   .log li:last-child{border-bottom:0}
-  .log time{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
-  .log b{font-family:var(--mono)}
-  .empty{color:var(--muted);font-size:14px;text-align:center;padding:22px 0}
-  footer{color:#5d6675;font-size:11.5px;line-height:1.7;margin-top:22px;text-align:center}
-  @media (max-width:520px){
-    .g3{grid-template-columns:1fr 1fr}
-    .pct{font-size:30px}
-  }
+  .log time{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none}
+  .log b{font-family:var(--sans);font-weight:800;flex:none}
+  .log span{color:var(--muted);font-size:13px}
+  .sect-h{display:flex;align-items:center;margin:26px 0 2px;font-size:12px;font-weight:900;
+    letter-spacing:.12em;color:var(--muted)}
+  .sect-h button{margin-left:auto;padding:6px 10px;min-height:32px;font-size:12px;background:transparent}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -140,581 +128,449 @@
 
 <header>
   <div class="wrap bar">
-    <div class="brand">종가 감시기<small>PRICE ALERT</small></div>
-    <div class="spacer"></div>
-    <div class="status"><span class="dot" id="dot"></span><span id="statusText">대기 중</span></div>
-    <button id="runBtn" class="btn-run">감시 시작</button>
+    <span class="brand">종가 감시</span>
+    <span class="stat"><span class="dot" id="dot"></span><span id="statTxt">대기 중</span></span>
   </div>
 </header>
 
 <div class="wrap">
+  <div id="list"></div>
 
-  <!-- 종목 추가 -->
-  <section class="panel">
-    <h2>감시 종목 추가</h2>
-    <div class="grid g2">
-      <div>
-        <label for="symIn">티커</label>
-        <input id="symIn" placeholder="예: 069500.KS" autocapitalize="characters" autocomplete="off">
-      </div>
-      <div>
-        <label for="nameIn">표시 이름 (선택)</label>
-        <input id="nameIn" placeholder="예: KODEX 200" autocomplete="off">
-      </div>
+  <div class="sect-h">알림 기록<button id="clearLog">지우기</button></div>
+  <ul class="log" id="log"></ul>
+</div>
+
+<!-- 하단 고정 -->
+<div class="dock">
+  <div class="dock-in">
+    <button id="runBtn">감시 시작</button>
+    <button id="addOpen" aria-label="종목 추가">＋</button>
+    <button id="cfgOpen" aria-label="설정">⚙</button>
+  </div>
+</div>
+
+<!-- 추가 시트 -->
+<div class="sheet" id="addSheet">
+  <div class="scrim" data-close></div>
+  <div class="sheet-in">
+    <div class="handle"></div>
+    <h2>종목 추가</h2>
+    <div class="fld">
+      <label for="symIn">종목코드 또는 티커</label>
+      <input id="symIn" placeholder="498400 또는 SPY" autocomplete="off" autocapitalize="characters" enterkeyhint="done">
     </div>
-    <div class="grid g3" style="margin-top:12px">
-      <div>
-        <label for="upIn">상승 기준 %</label>
-        <input id="upIn" class="num" type="number" step="0.1" min="0.1" placeholder="기본값 사용">
-      </div>
-      <div>
-        <label for="downIn">하락 기준 %</label>
-        <input id="downIn" class="num" type="number" step="0.1" min="0.1" placeholder="기본값 사용">
-      </div>
-      <div style="display:flex;align-items:flex-end">
-        <button id="addBtn" style="width:100%">추가</button>
-      </div>
+    <div class="grid g2 fld">
+      <div><label for="upIn">상승 기준 %</label><input id="upIn" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="기본값"></div>
+      <div><label for="downIn">하락 기준 %</label><input id="downIn" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="기본값"></div>
     </div>
-    <p class="hint">국내 종목·ETF는 <b>498400.KS</b>처럼 뒤에 <b>.KS</b>(코스피) 또는 <b>.KQ</b>(코스닥)를 붙입니다. 6자리 숫자만 넣으면 코스피 → 코스닥 순으로 알아서 찾고, <b>498400 KS</b>처럼 공백으로 써도 점으로 고쳐 넣습니다. 미국 종목은 그대로 — <b>SPY</b>, <b>QQQ</b>, <b>AAPL</b>.</p>
-  </section>
+    <button id="addBtn" style="width:100%;background:var(--signal);border-color:var(--signal);color:#2A2005">추가</button>
+    <p class="hint">국내는 <b>숫자 6자리</b>만 넣으면 됩니다 (498400, 005930). 종목명은 네이버 증권에서 자동으로 가져옵니다. 해외는 티커 그대로 (SPY, QQQ, AAPL).</p>
+  </div>
+</div>
 
-  <!-- 감시 목록 -->
-  <section id="listWrap"></section>
-
-  <!-- 설정 -->
-  <section class="panel">
-    <details class="cfg" id="cfgBox">
-      <summary>기준값 · 데이터 설정</summary>
-      <div class="cfg-body">
-        <div class="grid g3">
-          <div>
-            <label for="gUp">기본 상승 기준 %</label>
-            <input id="gUp" class="num" type="number" step="0.1" min="0.1" value="1">
-          </div>
-          <div>
-            <label for="gDown">기본 하락 기준 %</label>
-            <input id="gDown" class="num" type="number" step="0.1" min="0.1" value="1">
-          </div>
-          <div>
-            <label for="gCool">재알림 간격 (분)</label>
-            <input id="gCool" class="num" type="number" step="1" min="1" value="10">
-          </div>
-        </div>
-        <div class="grid g2" style="margin-top:12px">
-          <div>
-            <label for="gInt">조회 주기 (초)</label>
-            <input id="gInt" class="num" type="number" step="5" min="10" value="60">
-          </div>
-          <div>
-            <label for="gSrc">시세 출처</label>
-            <select id="gSrc">
-              <option value="yahoo">Yahoo Finance (국내+해외, 키 불필요)</option>
-              <option value="finnhub">Finnhub (해외 전용, API 키 필요)</option>
-            </select>
-          </div>
-        </div>
-        <div id="keyRow" style="margin-top:12px;display:none">
-          <label for="gKey">Finnhub API 키</label>
-          <input id="gKey" type="password" placeholder="finnhub.io 무료 키" autocomplete="off">
-        </div>
-        <div id="proxyRow" style="margin-top:12px">
-          <label for="gProxy">CORS 프록시 (선택 · <code>{url}</code> 자리표시자)</label>
-          <input id="gProxy" placeholder="비워두면 공개 프록시를 순서대로 시도" autocomplete="off">
-        </div>
-        <div class="grid g3" style="margin-top:12px">
-          <label class="switch"><input type="checkbox" id="gSound" checked>소리</label>
-          <label class="switch"><input type="checkbox" id="gNotify" checked>브라우저 알림</label>
-          <label class="switch"><input type="checkbox" id="gWake">화면 켜둠</label>
-        </div>
-        <div class="grid g2" style="margin-top:12px">
-          <button class="btn-ghost btn-sm" id="connBtn">연결 진단</button>
-          <button class="btn-ghost btn-sm" id="testBtn">알림 테스트</button>
-          <button class="btn-ghost btn-sm" id="expBtn">설정 내보내기</button>
-          <button class="btn-ghost btn-sm" id="impBtn">설정 불러오기</button>
-        </div>
-        <pre id="connOut" class="num" style="display:none;margin:12px 0 0;padding:12px;background:var(--panel-2);
-          border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--muted)"></pre>
-        <input type="file" id="impFile" accept="application/json" style="display:none">
-        <p class="hint"><b>Failed to fetch</b>가 뜨면 이 파일을 내려받아 브라우저에서 직접 여세요. 대화창 미리보기 안에서는 외부 시세 서버 호출이 차단됩니다. 그래도 안 되면 <b>연결 진단</b>을 눌러 어느 경로가 살아 있는지 확인하세요.<br>브라우저를 닫으면 감시가 멈추니 탭은 열어둔 채로 두세요. 조회 주기를 10초 아래로 내리면 시세 서버가 차단할 수 있습니다.</p>
-      </div>
-    </details>
-  </section>
-
-  <!-- 알림 기록 -->
-  <section class="panel">
-    <h2 style="display:flex;align-items:center">알림 기록
-      <button class="btn-ghost btn-sm" id="clearLog" style="margin-left:auto">지우기</button>
-    </h2>
-    <ul class="log" id="log"><li class="empty" style="display:block">아직 알림이 없습니다.</li></ul>
-  </section>
-
-  <footer>
-    시세는 출처에 따라 15~20분 지연될 수 있습니다. 투자 판단의 참고용이며, 체결 가격을 보장하지 않습니다.
-  </footer>
+<!-- 설정 시트 -->
+<div class="sheet" id="cfgSheet">
+  <div class="scrim" data-close></div>
+  <div class="sheet-in">
+    <div class="handle"></div>
+    <h2>설정</h2>
+    <div class="grid g3 fld">
+      <div><label for="gUp">상승 %</label><input id="gUp" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" value="1"></div>
+      <div><label for="gDown">하락 %</label><input id="gDown" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" value="1"></div>
+      <div><label for="gCool">재알림 분</label><input id="gCool" class="num" type="number" inputmode="numeric" step="1" min="1" value="10"></div>
+    </div>
+    <div class="fld">
+      <label for="gInt">조회 주기 (초)</label>
+      <input id="gInt" class="num" type="number" inputmode="numeric" step="5" min="10" value="30">
+    </div>
+    <div class="grid g3 fld">
+      <label class="sw"><input type="checkbox" id="gSound" checked>소리</label>
+      <label class="sw"><input type="checkbox" id="gNotify" checked>알림</label>
+      <label class="sw"><input type="checkbox" id="gWake" checked>화면 유지</label>
+    </div>
+    <div class="fld">
+      <label for="gProxy">우회 서버 (선택 · <code>{url}</code>)</label>
+      <input id="gProxy" placeholder="비워두면 자동으로 살아있는 경로를 찾음" autocomplete="off">
+    </div>
+    <div class="grid g2 fld">
+      <button id="diagBtn">연결 진단</button>
+      <button id="testBtn">알림 테스트</button>
+    </div>
+    <div class="grid g2 fld">
+      <button id="expBtn">설정 저장</button>
+      <button id="impBtn">설정 불러오기</button>
+    </div>
+    <input type="file" id="impFile" accept="application/json" style="display:none">
+    <pre class="diag" id="diagOut" style="display:none"></pre>
+    <p class="hint">
+      <b>국내 종목</b>은 네이버 증권에서 실시간 시세를 받습니다. 네이버 증권 앱에 뜨는 숫자와 같습니다.<br>
+      <b>해외 종목</b>은 Yahoo 기준이라 15~20분 지연됩니다.<br><br>
+      <b>화면이 꺼지면 감시가 멈춥니다.</b> 휴대폰 브라우저는 화면이 꺼지거나 다른 앱으로 전환되면 타이머를 정지시킵니다. "화면 유지"를 켜고 충전기에 꽂은 채 이 화면을 띄워두세요. 화면을 다시 켜면 즉시 재조회하고, 그 사이 기준을 넘었다면 그때 알려줍니다.
+    </p>
+  </div>
 </div>
 
 <script>
 "use strict";
 
-/* ── 저장소 (localStorage 불가 환경에서는 메모리로 대체) ── */
-const store = (() => {
-  let mem = {}, ok = false;
-  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); ok = true; } catch(e) { ok = false; }
-  return {
-    get(k, d){ try{ const v = ok ? localStorage.getItem(k) : mem[k]; return v ? JSON.parse(v) : d; }catch(e){ return d; } },
-    set(k, v){ try{ const s = JSON.stringify(v); if(ok) localStorage.setItem(k,s); else mem[k]=s; }catch(e){} }
-  };
-})();
+/* ── 저장 ── */
+const store=(()=>{let m={},ok=false;try{localStorage.setItem("__t","1");localStorage.removeItem("__t");ok=true}catch(e){}
+ return{get(k,d){try{const v=ok?localStorage.getItem(k):m[k];return v?JSON.parse(v):d}catch(e){return d}},
+        set(k,v){try{const s=JSON.stringify(v);ok?localStorage.setItem(k,s):m[k]=s}catch(e){}}}})();
 
-const DEFAULTS = {
-  upPct:1, downPct:1, coolMin:10, intervalSec:60,
-  source:"yahoo", key:"", proxy:"", sound:true, notify:true, wake:false
-};
+const DEF={upPct:1,downPct:1,coolMin:10,intervalSec:30,proxy:"",sound:true,notify:true,wake:true};
+let cfg=Object.assign({},DEF,store.get("w.cfg",{}));
+let items=store.get("w.items",[]);
+let logs=store.get("w.logs",[]);
+let bestProxy=store.get("w.proxy",null);
+let timer=null,running=false,ac=null,wl=null,busy=false;
 
-let settings = Object.assign({}, DEFAULTS, store.get("pa.settings", {}));
-let items    = store.get("pa.items", []);
-let logs     = store.get("pa.logs", []);
-let timer = null, running = false, audioCtx = null, wakeLock = null, busy = false;
+const $=id=>document.getElementById(id);
+const save=()=>{store.set("w.cfg",cfg);store.set("w.items",items.map(strip));store.set("w.logs",logs)};
+const strip=i=>({id:i.id,symbol:i.symbol,name:i.name,kind:i.kind,upPct:i.upPct,downPct:i.downPct});
 
-const $ = id => document.getElementById(id);
-const save = () => { store.set("pa.settings", settings); store.set("pa.items", items); store.set("pa.logs", logs); };
-
-/* ── 설정 UI 바인딩 ── */
-const bind = [
-  ["gUp","upPct","number"],["gDown","downPct","number"],["gCool","coolMin","number"],
-  ["gInt","intervalSec","number"],["gSrc","source","text"],["gKey","key","text"],
-  ["gProxy","proxy","text"],["gSound","sound","bool"],["gNotify","notify","bool"],["gWake","wake","bool"]
-];
-function loadSettingsUI(){
-  bind.forEach(([id,k,t]) => {
-    const el = $(id); if(!el) return;
-    if(t === "bool") el.checked = !!settings[k]; else el.value = settings[k];
-  });
-  $("keyRow").style.display   = settings.source === "finnhub" ? "block" : "none";
-  $("proxyRow").style.display = settings.source === "yahoo"   ? "block" : "none";
+/* ── 우회 경로 ── */
+function proxies(url){
+  const e=encodeURIComponent(url),out=[];
+  if(cfg.proxy) out.push(cfg.proxy.includes("{url}")?cfg.proxy.replace("{url}",e):cfg.proxy+e);
+  const pool=[
+    "https://api.codetabs.com/v1/proxy/?quest="+e,
+    "https://api.allorigins.win/raw?url="+e,
+    "https://corsproxy.io/?url="+e,
+    "https://api.cors.lol/?url="+e,
+    "https://thingproxy.freeboard.io/fetch/"+url,
+    url
+  ];
+  if(bestProxy!=null&&pool[bestProxy]) out.push(pool[bestProxy]); // 직전에 성공한 경로 먼저
+  pool.forEach(p=>{if(!out.includes(p))out.push(p)});
+  return {list:out,pool};
 }
-bind.forEach(([id,k,t]) => {
-  const el = $(id); if(!el) return;
-  el.addEventListener("change", () => {
-    if(t === "bool") settings[k] = el.checked;
-    else if(t === "number"){ const n = parseFloat(el.value); settings[k] = isFinite(n) && n > 0 ? n : DEFAULTS[k]; el.value = settings[k]; }
-    else settings[k] = el.value.trim();
-    if(k === "source") loadSettingsUI();
-    if(k === "intervalSec" && running) restartTimer();
-    if(k === "wake") settings.wake && running ? requestWake() : releaseWake();
-    save(); render();
-  });
-});
+// 캐시된 옛날 값을 받지 않도록 매 요청마다 고유 파라미터를 붙입니다
+const bust=u=>u+(u.includes("?")?"&":"?")+"_t="+Date.now();
 
-/* ── 티커 정규화 ── */
-// "498400 KS", "498400-ks", "498400" → "498400.KS" 후보 생성
-function normalizeSymbol(raw){
-  let s = String(raw || "").trim().toUpperCase().replace(/\s+/g, " ");
-  s = s.replace(/[\s_\-.]+(KS|KQ)$/, ".$1");
-  return s;
-}
-function candidates(sym){
-  if(/^\d{6}$/.test(sym)) return [sym + ".KS", sym + ".KQ"]; // 코스피 먼저, 없으면 코스닥
-  return [sym];
-}
-function friendlyErr(msg){
-  const m = String(msg || "");
-  if(/failed to fetch|networkerror|load failed|typeerror/i.test(m))
-    return "네트워크 차단 — 이 HTML 파일을 내려받아 브라우저에서 직접 열어야 시세를 가져옵니다";
-  return m;
-}
-
-/* ── 시세 조회 ── */
-function proxyList(url){
-  const enc = encodeURIComponent(url), out = [];
-  if(settings.proxy) out.push(settings.proxy.includes("{url}") ? settings.proxy.replace("{url}", enc) : settings.proxy + enc);
-  out.push("https://api.allorigins.win/raw?url=" + enc);
-  out.push("https://corsproxy.io/?url=" + enc);
-  out.push("https://api.codetabs.com/v1/proxy/?quest=" + enc);
-  out.push("https://api.cors.lol/?url=" + enc);
-  out.push(url); // 직접 호출 (일부 환경에서 통과)
-  return out;
-}
-
-async function fetchYahoo(symbol){
-  const url = "https://query1.finance.yahoo.com/v8/finance/chart/" +
-              encodeURIComponent(symbol) + "?interval=1d&range=10d";
-  let lastErr = "";
-  for(const target of proxyList(url)){
+async function getJSON(url){
+  const {list,pool}=proxies(bust(url));
+  let last="";
+  for(const t of list){
     try{
-      const res = await fetch(target, { cache:"no-store" });
-      if(!res.ok){ lastErr = "HTTP " + res.status; continue; }
-      const raw = await res.text();
-      let data;
-      try{ data = JSON.parse(raw); }catch(pe){ lastErr = "프록시 응답 형식 오류"; continue; }
-      const r = data && data.chart && data.chart.result && data.chart.result[0];
-      if(!r){
-        // 야후가 정상 응답했는데 결과가 없으면 = 존재하지 않는 티커. 다른 프록시를 시도할 필요 없음
-        if(data && data.chart) throw new Error("NOT_FOUND");
-        lastErr = "응답을 해석할 수 없음"; continue;
-      }
-      const m = r.meta || {};
-      const closes = ((r.indicators && r.indicators.quote && r.indicators.quote[0] || {}).close || [])
-        .filter(v => typeof v === "number");
-      const price = m.regularMarketPrice != null ? m.regularMarketPrice : closes[closes.length-1];
-      let prev = m.previousClose != null ? m.previousClose : m.chartPreviousClose;
-      if(prev == null) prev = closes[closes.length-2];
-      if(price == null || prev == null){ lastErr = "가격 데이터 없음"; continue; }
-      return {
-        price, prev,
-        currency: m.currency || "",
-        name: m.shortName || m.symbol || symbol,
-        time: (m.regularMarketTime ? m.regularMarketTime*1000 : Date.now()),
-        state: m.marketState || ""
-      };
-    }catch(e){
-      if(e && e.message === "NOT_FOUND") throw e;
-      lastErr = friendlyErr(e.message) || "네트워크 오류";
-    }
+      const res=await fetch(t,{cache:"no-store",headers:{"Accept":"application/json"}});
+      if(!res.ok){last="HTTP "+res.status;continue}
+      const txt=await res.text();
+      let j;try{j=JSON.parse(txt)}catch(pe){last="응답 형식 오류";continue}
+      const idx=pool.findIndex(p=>p===t);
+      if(idx>-1){bestProxy=idx;store.set("w.proxy",idx)}
+      return j;
+    }catch(e){last=/failed to fetch|load failed|networkerror/i.test(e.message||"")
+      ?"네트워크 차단":(e.message||"오류")}
   }
-  throw new Error(lastErr || "조회 실패");
+  throw new Error(last||"조회 실패");
 }
 
-async function fetchFinnhub(symbol){
-  if(!settings.key) throw new Error("Finnhub API 키를 입력하세요");
-  const res = await fetch("https://finnhub.io/api/v1/quote?symbol=" +
-    encodeURIComponent(symbol) + "&token=" + encodeURIComponent(settings.key), { cache:"no-store" });
-  if(res.status === 401 || res.status === 403) throw new Error("API 키가 거부됨");
-  if(res.status === 429) throw new Error("호출 한도 초과 — 주기를 늘리세요");
-  if(!res.ok) throw new Error("HTTP " + res.status);
-  const q = await res.json();
-  if(!q || !q.c) throw new Error("종목을 찾을 수 없음");
-  return { price:q.c, prev:q.pc, currency:"USD", name:symbol, time:(q.t ? q.t*1000 : Date.now()), state:"" };
-}
+/* ── 국내: 네이버 증권 ── */
+const toNum=v=>{if(v==null)return null;if(typeof v==="number")return v;
+  const n=parseFloat(String(v).replace(/,/g,""));return isFinite(n)?n:null};
 
-// 후보 티커를 순서대로 시도하고, 성공한 티커를 resolved로 함께 돌려줍니다
-async function fetchQuote(sym){
-  if(settings.source === "finnhub"){
-    const q = await fetchFinnhub(sym);
-    q.resolved = sym;
-    return q;
-  }
-  const list = candidates(sym);
-  let last = null;
-  for(const cand of list){
+async function fetchKR(code){
+  const eps=[
+    "https://polling.finance.naver.com/api/realtime/domestic/stock/"+code,
+    "https://api.stock.naver.com/stock/"+code+"/basic",
+    "https://polling.finance.naver.com/api/realtime.nhn?query=SERVICE_ITEM%3A"+code
+  ];
+  let last="";
+  for(const ep of eps){
     try{
-      const q = await fetchYahoo(cand);
-      q.resolved = cand;
-      return q;
-    }catch(e){
-      last = e;
-      if(e.message !== "NOT_FOUND") throw new Error(friendlyErr(e.message));
-    }
+      const j=await getJSON(ep);
+      const q=parseKR(j);
+      if(q){q.kind="kr";q.realtime=true;q.currency="KRW";q.time=Date.now();return q}
+      last="시세 항목 없음";
+    }catch(e){last=e.message}
   }
-  throw new Error("종목을 찾을 수 없음 — 국내는 " + list[0] + " 형식으로 입력하세요");
+  throw new Error(last||"국내 시세 조회 실패");
 }
 
-/* ── 조회 루프 ── */
+function parseKR(j){
+  // 구형 realtime.nhn 형식
+  const a=j&&j.result&&j.result.areas&&j.result.areas[0]&&j.result.areas[0].datas&&j.result.areas[0].datas[0];
+  if(a&&a.nv!=null){
+    const price=toNum(a.nv);
+    const prev=a.pcv!=null?toNum(a.pcv):price-toNum(a.cv||0);
+    if(price&&prev)return{price,prev,name:a.nm||""};
+  }
+  // 신형 형식 (datas 배열 또는 단일 객체)
+  const o=(j&&Array.isArray(j.datas)&&j.datas[0])||j;
+  if(!o||typeof o!=="object")return null;
+  const price=toNum(o.closePrice!=null?o.closePrice:o.nv);
+  if(!price)return null;
+  let prev=null;
+  let diff=toNum(o.compareToPreviousClosePrice);
+  const code=o.compareToPreviousPrice&&o.compareToPreviousPrice.code;
+  const ratio=toNum(o.fluctuationsRatio);
+  if(diff!=null){
+    // 코드 4·5는 하락. 부호가 빠져 오는 경우가 있어 코드로 방향을 확정합니다
+    if(code==="5"||code==="4") diff=-Math.abs(diff);
+    else if(code==="1"||code==="2") diff=Math.abs(diff);
+    else if(ratio!=null&&ratio<0) diff=-Math.abs(diff);
+    prev=price-diff;
+  }else if(ratio!=null&&ratio!==-100){
+    prev=price/(1+ratio/100);
+  }
+  if(!prev||!isFinite(prev))return null;
+  return{price,prev:Math.round(prev),name:o.stockName||o.itemName||o.nm||""};
+}
+
+/* ── 해외: Yahoo ── */
+async function fetchUS(sym){
+  const j=await getJSON("https://query1.finance.yahoo.com/v8/finance/chart/"+
+    encodeURIComponent(sym)+"?interval=1d&range=10d");
+  const r=j&&j.chart&&j.chart.result&&j.chart.result[0];
+  if(!r)throw new Error("종목을 찾을 수 없음");
+  const m=r.meta||{};
+  const cl=(((r.indicators||{}).quote||[{}])[0].close||[]).filter(v=>typeof v==="number");
+  const price=m.regularMarketPrice!=null?m.regularMarketPrice:cl[cl.length-1];
+  let prev=m.previousClose!=null?m.previousClose:m.chartPreviousClose;
+  if(prev==null)prev=cl[cl.length-2];
+  if(price==null||prev==null)throw new Error("가격 데이터 없음");
+  return{price,prev,name:m.shortName||sym,currency:m.currency||"USD",
+    time:m.regularMarketTime?m.regularMarketTime*1000:Date.now(),kind:"us",realtime:false};
+}
+
+const isKR=s=>/^\d{6}$/.test(s);
+const fetchQuote=s=>isKR(s)?fetchKR(s):fetchUS(s);
+
+/* ── 루프 ── */
 async function refreshAll(){
-  if(busy) return;
-  busy = true;
-  setStatus("조회 중…");
+  if(busy||!items.length)return;
+  busy=true;setStat("조회 중…");
   for(const it of items){
     try{
-      const q = await fetchQuote(it.symbol);
-      it.data = q; it.error = null;
-      if(q.resolved) it.symbol = q.resolved;
-      if(!it.name) it.displayName = q.name;
-      checkAlert(it);
-    }catch(e){
-      it.error = friendlyErr(e.message) || "조회 실패";
-    }
+      const q=await fetchQuote(it.symbol);
+      it.data=q;it.error=null;
+      if(!it.name&&q.name)it.name=q.name;
+      check(it);
+    }catch(e){it.error=e.message||"조회 실패"}
     render();
-    await new Promise(r => setTimeout(r, 350)); // 프록시 부하 완화
+    await new Promise(r=>setTimeout(r,300));
   }
-  busy = false;
-  save();
-  setStatus(running ? "감시 중 · " + timeStr(Date.now()) : "대기 중");
+  busy=false;save();
+  setStat(running?"감시 중 · "+hhmmss(Date.now()):"대기 중");
 }
 
-function checkAlert(it){
-  const up = it.upPct || settings.upPct, down = it.downPct || settings.downPct;
-  const chg = ((it.data.price - it.data.prev) / it.data.prev) * 100;
-  const dir = chg >= up ? "up" : (chg <= -down ? "down" : null);
-  if(!dir){ it.armedAt = null; it.lastDir = null; return; }
-  const now = Date.now();
-  const fresh = it.lastDir !== dir || !it.armedAt || (now - it.armedAt) > settings.coolMin * 60000;
-  if(!fresh) return;
-  it.lastDir = dir; it.armedAt = now; it.fireAt = now;
-  fire(it, dir, chg);
-}
-
-function fire(it, dir, chg){
-  const label = labelOf(it);
-  const txt = (dir === "up" ? "▲ 상승 " : "▼ 하락 ") + fmtPct(chg) +
-              " · 현재 " + fmtNum(it.data.price, it.data.currency) +
-              " (전일 " + fmtNum(it.data.prev, it.data.currency) + ")";
-  logs.unshift({ t:Date.now(), sym:label, dir, msg:txt });
-  logs = logs.slice(0, 100);
-  save(); renderLog();
-  if(settings.sound) beep(dir);
-  if(settings.notify && "Notification" in window && Notification.permission === "granted"){
-    try{ new Notification(label + " " + fmtPct(chg), { body:txt, tag:it.id, renotify:true }); }catch(e){}
-  }
+function check(it){
+  const up=it.upPct||cfg.upPct,dn=it.downPct||cfg.downPct;
+  const chg=(it.data.price-it.data.prev)/it.data.prev*100;
+  const dir=chg>=up?"up":(chg<=-dn?"down":null);
+  if(!dir){it.lastDir=null;it.armed=null;return}
+  const now=Date.now();
+  if(it.lastDir===dir&&it.armed&&now-it.armed<cfg.coolMin*60000)return;
+  it.lastDir=dir;it.armed=now;it.fire=now;
+  const nm=it.name||it.symbol;
+  const msg=(dir==="up"?"▲ ":"▼ ")+pct(chg)+" · "+money(it.data.price,it.data.currency)+
+            " (전일 "+money(it.data.prev,it.data.currency)+")";
+  logs.unshift({t:now,nm,dir,msg});logs=logs.slice(0,60);save();renderLog();
+  if(cfg.sound)beep(dir);
+  if(navigator.vibrate)try{navigator.vibrate(dir==="up"?[80,60,80]:[200,80,200])}catch(e){}
+  if(cfg.notify&&"Notification"in window&&Notification.permission==="granted")
+    try{new Notification(nm+" "+pct(chg),{body:msg,tag:it.id,renotify:true})}catch(e){}
 }
 
 /* ── 소리 ── */
 function beep(dir){
   try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === "suspended") audioCtx.resume();
-    const seq = dir === "up" ? [660, 880, 1046] : [660, 494, 392];
-    seq.forEach((f, i) => {
-      const t0 = audioCtx.currentTime + i * 0.16;
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = "sine"; o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.30);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(t0); o.stop(t0 + 0.32);
-    });
+    if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==="suspended")ac.resume();
+    const seq=dir==="up"?[659,880,1175]:[659,494,370];
+    seq.forEach((f,i)=>{const t=ac.currentTime+i*.17;
+      const o=ac.createOscillator(),g=ac.createGain();
+      o.type="triangle";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.3,t+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.32);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.34)});
   }catch(e){}
 }
 
-/* ── 화면 켜둠 ── */
-async function requestWake(){
-  try{ if("wakeLock" in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
-}
-function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){} }
-document.addEventListener("visibilitychange", () => {
-  if(document.visibilityState === "visible" && running && settings.wake) requestWake();
+/* ── 화면 유지 ── */
+async function wake(){try{if("wakeLock"in navigator&&!wl){wl=await navigator.wakeLock.request("screen");
+  wl.addEventListener("release",()=>{wl=null})}}catch(e){}}
+function unwake(){try{if(wl){wl.release();wl=null}}catch(e){}}
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"&&running){
+    if(cfg.wake)wake();
+    refreshAll();            // 화면을 다시 켜면 곧바로 최신 시세로 갱신
+  }
 });
 
 /* ── 시작 / 정지 ── */
-function restartTimer(){
-  clearInterval(timer);
-  timer = setInterval(refreshAll, Math.max(10, settings.intervalSec) * 1000);
-}
+function retime(){clearInterval(timer);timer=setInterval(refreshAll,Math.max(10,cfg.intervalSec)*1000)}
 async function start(){
-  if(!items.length){ alert("감시할 종목을 먼저 추가하세요."); return; }
-  running = true;
-  if(settings.notify && "Notification" in window && Notification.permission === "default"){
-    try{ await Notification.requestPermission(); }catch(e){}
-  }
-  if(settings.sound){
-    try{
-      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      audioCtx.resume();
-    }catch(e){}
-  }
-  if(settings.wake) requestWake();
-  $("runBtn").textContent = "감시 정지";
-  $("runBtn").className = "btn-stop";
-  $("dot").className = "dot live";
-  restartTimer();
-  refreshAll();
+  if(!items.length){openSheet("addSheet");return}
+  running=true;
+  if(cfg.notify&&"Notification"in window&&Notification.permission==="default")
+    try{await Notification.requestPermission()}catch(e){}
+  if(cfg.sound)try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}
+  if(cfg.wake)wake();
+  $("runBtn").textContent="감시 정지";$("runBtn").classList.add("on");
+  $("dot").className="dot live";
+  retime();refreshAll();
 }
-function stop(){
-  running = false;
-  clearInterval(timer); timer = null;
-  releaseWake();
-  $("runBtn").textContent = "감시 시작";
-  $("runBtn").className = "btn-run";
-  $("dot").className = "dot";
-  setStatus("대기 중");
-}
-$("runBtn").addEventListener("click", () => running ? stop() : start());
+function stop(){running=false;clearInterval(timer);timer=null;unwake();
+  $("runBtn").textContent="감시 시작";$("runBtn").classList.remove("on");
+  $("dot").className="dot";setStat("대기 중")}
+$("runBtn").addEventListener("click",()=>running?stop():start());
 
-/* ── 종목 추가 / 삭제 ── */
-$("addBtn").addEventListener("click", addItem);
-$("symIn").addEventListener("keydown", e => { if(e.key === "Enter") addItem(); });
-function addItem(){
-  const sym = normalizeSymbol($("symIn").value);
-  if(!sym){ $("symIn").focus(); return; }
-  if(items.some(i => i.symbol === sym)){ alert("이미 감시 중인 종목입니다."); return; }
-  const up = parseFloat($("upIn").value), down = parseFloat($("downIn").value);
-  items.push({
-    id: "i" + Date.now().toString(36),
-    symbol: sym,
-    name: $("nameIn").value.trim(),
-    upPct: isFinite(up) && up > 0 ? up : null,
-    downPct: isFinite(down) && down > 0 ? down : null,
-    data: null, error: null, lastDir: null, armedAt: null
-  });
-  $("symIn").value = ""; $("nameIn").value = ""; $("upIn").value = ""; $("downIn").value = "";
-  save(); render();
-  const it = items[items.length-1];
-  fetchQuote(sym).then(q => {
-                   it.data = q; it.error = null;
-                   if(q.resolved) it.symbol = q.resolved;
-                   if(!it.name) it.displayName = q.name;
-                   checkAlert(it);
-                 })
-                 .catch(e => { it.error = friendlyErr(e.message); })
-                 .finally(() => { save(); render(); });
+/* ── 시트 ── */
+function openSheet(id){$(id).classList.add("open")}
+function closeSheets(){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"))}
+$("addOpen").addEventListener("click",()=>{openSheet("addSheet");setTimeout(()=>$("symIn").focus(),250)});
+$("cfgOpen").addEventListener("click",()=>openSheet("cfgSheet"));
+document.querySelectorAll("[data-close]").forEach(el=>el.addEventListener("click",closeSheets));
+
+/* ── 종목 추가 ── */
+function normalize(s){
+  let v=String(s||"").trim().toUpperCase().replace(/[\s_\-.]+(KS|KQ)$/,"");
+  const m=v.match(/^A?(\d{6})$/);          // 토스식 A498400 도 허용
+  return m?m[1]:v;
 }
+function addItem(){
+  const sym=normalize($("symIn").value);
+  if(!sym)return $("symIn").focus();
+  if(items.some(i=>i.symbol===sym)){alert("이미 감시 중입니다.");return}
+  const u=parseFloat($("upIn").value),d=parseFloat($("downIn").value);
+  const it={id:"i"+Date.now().toString(36),symbol:sym,name:"",kind:isKR(sym)?"kr":"us",
+    upPct:isFinite(u)&&u>0?u:null,downPct:isFinite(d)&&d>0?d:null,
+    data:null,error:null,lastDir:null,armed:null};
+  items.push(it);
+  $("symIn").value="";$("upIn").value="";$("downIn").value="";
+  closeSheets();save();render();
+  fetchQuote(sym).then(q=>{it.data=q;it.error=null;if(q.name)it.name=q.name;check(it)})
+    .catch(e=>{it.error=e.message}).finally(()=>{save();render()});
+}
+$("addBtn").addEventListener("click",addItem);
+$("symIn").addEventListener("keydown",e=>{if(e.key==="Enter")addItem()});
 
 /* ── 포맷 ── */
-const labelOf = it => it.name || it.displayName || it.symbol;
-const timeStr = t => new Date(t).toLocaleTimeString("ko-KR", { hour12:false });
-function fmtPct(v){ return (v > 0 ? "+" : "") + v.toFixed(2) + "%"; }
-function fmtNum(v, cur){
-  if(v == null) return "—";
-  const krw = cur === "KRW";
-  return v.toLocaleString("ko-KR", {
-    minimumFractionDigits: krw ? 0 : 2,
-    maximumFractionDigits: krw ? 0 : 2
-  });
-}
-function setStatus(s){ $("statusText").textContent = s; }
+const hhmmss=t=>new Date(t).toLocaleTimeString("ko-KR",{hour12:false});
+const pct=v=>(v>0?"+":"")+v.toFixed(2)+"%";
+function money(v,cur){if(v==null)return"—";const krw=cur==="KRW";
+  return v.toLocaleString("ko-KR",{minimumFractionDigits:krw?0:2,maximumFractionDigits:krw?0:2})}
+const setStat=s=>{$("statTxt").textContent=s};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 /* ── 렌더 ── */
 function render(){
-  const wrap = $("listWrap");
+  const el=$("list");
   if(!items.length){
-    wrap.innerHTML = '<div class="panel"><p class="empty">감시 중인 종목이 없습니다. 위에서 티커를 추가하세요.</p></div>';
+    el.innerHTML='<p class="empty">감시할 종목이 없습니다.<br>아래 <b>＋</b> 버튼으로 추가하세요.</p>';
     return;
   }
-  wrap.innerHTML = items.map(it => {
-    const up = it.upPct || settings.upPct, down = it.downPct || settings.downPct;
-    const d = it.data;
-    const chg = d ? ((d.price - d.prev) / d.prev) * 100 : null;
-    const cls = chg == null ? "f" : (chg > 0 ? "u" : (chg < 0 ? "d" : "f"));
-    const state = chg == null ? "" : (chg >= up ? "up" : (chg <= -down ? "down" : ""));
-    const fireCls = it.fireAt && Date.now() - it.fireAt < 4000 ? " fire" : "";
-    const span = Math.max(up, down) * 1.7;
-    const pos = chg == null ? 50 : Math.min(97, Math.max(3, 50 + (chg / span) * 50));
-    const upPos = Math.min(97, 50 + (up / span) * 50);
-    const dnPos = Math.max(3, 50 - (down / span) * 50);
-    const diff = d ? d.price - d.prev : null;
-
-    return '<div class="card ' + state + fireCls + '">' +
-      '<div class="card-top">' +
-        '<div class="tick">' + esc(it.symbol) + '<em>' + esc(it.name || (d && d.name) || "") + '</em></div>' +
-        '<div class="pct ' + cls + '">' + (chg == null ? "—" : fmtPct(chg)) +
-          '<span>' + (diff == null ? "" : (diff > 0 ? "+" : "") + fmtNum(diff, d.currency)) + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="prices">' +
-        '<div><dt>전일 종가</dt><dd>' + (d ? fmtNum(d.prev, d.currency) : "—") + '</dd></div>' +
-        '<div><dt>현재가</dt><dd class="' + cls + '">' + (d ? fmtNum(d.price, d.currency) : "—") + '</dd></div>' +
-      '</div>' +
-      '<div class="gauge">' +
-        '<div class="track"></div><div class="zero"></div>' +
-        '<div class="zone" style="left:' + dnPos + '%"><b>-' + down + '%</b></div>' +
-        '<div class="zone" style="left:' + upPos + '%"><b>+' + up + '%</b></div>' +
-        '<div class="marker ' + cls + '" style="left:' + pos + '%"></div>' +
-      '</div>' +
-      '<div class="card-foot">' +
-        (it.error ? '<span class="err">' + esc(it.error) + '</span>'
-                  : '<span>' + (d ? timeStr(d.time) + " 기준" : "조회 대기") + '</span>') +
-        '<span class="spacer"></span>' +
-        '<span class="tag">기준 +' + up + ' / -' + down + '</span>' +
-        '<button class="btn-ghost btn-sm" data-del="' + it.id + '">삭제</button>' +
-      '</div>' +
-    '</div>';
+  el.innerHTML=items.map(it=>{
+    const up=it.upPct||cfg.upPct,dn=it.downPct||cfg.downPct,d=it.data;
+    const chg=d?(d.price-d.prev)/d.prev*100:null;
+    const c=chg==null?"f":(chg>0?"u":chg<0?"d":"f");
+    const hit=chg==null?"":(chg>=up?" hitUp":(chg<=-dn?" hitDown":""));
+    const fr=it.fire&&Date.now()-it.fire<4000?" fire":"";
+    const span=Math.max(up,dn)*1.7;
+    const mp=chg==null?50:Math.min(96,Math.max(4,50+chg/span*50));
+    const upP=Math.min(96,50+up/span*50), dnP=Math.max(4,50-dn/span*50);
+    const df=d?d.price-d.prev:null;
+    const badge=d?(d.realtime?'<span class="badge rt">실시간</span>':'<span class="badge dl">지연</span>'):"";
+    return '<div class="card'+hit+fr+'">'+
+      '<div class="row1"><div><div class="nm">'+esc(it.name||it.symbol)+'</div>'+
+        '<div class="cd">'+esc(it.symbol)+badge+'</div></div>'+
+        '<div class="pct '+c+'">'+(chg==null?"—":pct(chg))+
+        '<i>'+(df==null?"":(df>0?"+":"")+money(df,d.currency))+'</i></div></div>'+
+      '<div class="px"><div><dt>전일 종가</dt><dd>'+(d?money(d.prev,d.currency):"—")+'</dd></div>'+
+        '<div><dt>현재가</dt><dd class="'+c+'">'+(d?money(d.price,d.currency):"—")+'</dd></div></div>'+
+      '<div class="gg"><div class="tr"></div><div class="zr"></div>'+
+        '<div class="zn" style="left:'+dnP+'%"><b>-'+dn+'%</b></div>'+
+        '<div class="zn" style="left:'+upP+'%"><b>+'+up+'%</b></div>'+
+        '<div class="mk '+c+'" style="left:'+mp+'%"></div></div>'+
+      '<div class="foot">'+(it.error?'<span class="err">'+esc(it.error)+'</span>':
+        '<span>'+(d?hhmmss(d.time):"조회 대기")+'</span>')+
+        '<span class="sp"></span><button data-del="'+it.id+'">삭제</button></div></div>';
   }).join("");
-
-  wrap.querySelectorAll("[data-del]").forEach(b => {
-    b.addEventListener("click", () => {
-      items = items.filter(i => i.id !== b.dataset.del);
-      save(); render();
-    });
-  });
+  el.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{
+    items=items.filter(i=>i.id!==b.dataset.del);save();render()}));
 }
-
 function renderLog(){
-  const el = $("log");
-  if(!logs.length){ el.innerHTML = '<li class="empty" style="display:block">아직 알림이 없습니다.</li>'; return; }
-  el.innerHTML = logs.map(l =>
-    '<li><time>' + timeStr(l.t) + '</time><b class="' + (l.dir === "up" ? "u" : "d") + '">' +
-    esc(l.sym) + '</b><span>' + esc(l.msg) + '</span></li>'
-  ).join("");
+  const el=$("log");
+  if(!logs.length){el.innerHTML='<li style="color:var(--muted);font-size:13px;padding:12px 0">아직 알림이 없습니다.</li>';return}
+  el.innerHTML=logs.map(l=>'<li><time>'+hhmmss(l.t)+'</time><b class="'+(l.dir==="up"?"u":"d")+
+    '">'+esc(l.nm)+'</b><span>'+esc(l.msg)+'</span></li>').join("");
 }
 
-function esc(s){
-  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
-    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
-}
+/* ── 설정 바인딩 ── */
+const B=[["gUp","upPct","n"],["gDown","downPct","n"],["gCool","coolMin","n"],["gInt","intervalSec","n"],
+         ["gProxy","proxy","t"],["gSound","sound","b"],["gNotify","notify","b"],["gWake","wake","b"]];
+function loadCfg(){B.forEach(([id,k,t])=>{const e=$(id);if(!e)return;
+  t==="b"?e.checked=!!cfg[k]:e.value=cfg[k]})}
+B.forEach(([id,k,t])=>{const e=$(id);if(!e)return;
+  e.addEventListener("change",()=>{
+    if(t==="b")cfg[k]=e.checked;
+    else if(t==="n"){const n=parseFloat(e.value);cfg[k]=isFinite(n)&&n>0?n:DEF[k];e.value=cfg[k]}
+    else cfg[k]=e.value.trim();
+    if(k==="intervalSec"&&running)retime();
+    if(k==="wake")cfg.wake&&running?wake():unwake();
+    save();render()})});
 
-/* ── 보조 버튼 ── */
-$("clearLog").addEventListener("click", () => { logs = []; save(); renderLog(); });
-
-$("connBtn").addEventListener("click", async () => {
-  const out = $("connOut");
-  out.style.display = "block";
-  out.textContent = "경로를 하나씩 확인하는 중…\n";
-  const url = "https://query1.finance.yahoo.com/v8/finance/chart/069500.KS?interval=1d&range=5d";
-  const targets = proxyList(url);
-  const names = ["내 프록시","allorigins","corsproxy.io","codetabs","cors.lol","직접 호출"];
-  const offset = settings.proxy ? 0 : 1;
-  let alive = 0;
-  for(let i = 0; i < targets.length; i++){
-    const label = names[i + offset] || "경로 " + (i+1);
-    try{
-      const t0 = performance.now();
-      const res = await fetch(targets[i], { cache:"no-store" });
-      const body = await res.text();
-      const ms = Math.round(performance.now() - t0);
-      const good = res.ok && body.indexOf("chart") > -1;
-      if(good) alive++;
-      out.textContent += (good ? "정상  " : "실패  ") + label.padEnd(12) +
-        (good ? ms + "ms" : "HTTP " + res.status) + "\n";
-    }catch(e){
-      out.textContent += "차단  " + label.padEnd(12) + (e.message || "네트워크 오류") + "\n";
+/* ── 보조 ── */
+$("clearLog").addEventListener("click",()=>{logs=[];save();renderLog()});
+$("testBtn").addEventListener("click",async()=>{
+  if(cfg.notify&&"Notification"in window&&Notification.permission==="default")
+    try{await Notification.requestPermission()}catch(e){}
+  if(cfg.sound)beep("up");
+  if(navigator.vibrate)try{navigator.vibrate([80,60,80])}catch(e){}
+  if(cfg.notify&&"Notification"in window&&Notification.permission==="granted")
+    try{new Notification("종가 감시",{body:"알림이 정상 작동합니다."})}catch(e){}
+  logs.unshift({t:Date.now(),nm:"테스트",dir:"up",msg:"알림 테스트를 실행했습니다."});
+  logs=logs.slice(0,60);save();renderLog();
+});
+$("diagBtn").addEventListener("click",async()=>{
+  const out=$("diagOut");out.style.display="block";out.textContent="확인 중…\n\n";
+  const tests=[
+    ["네이버 실시간","https://polling.finance.naver.com/api/realtime/domestic/stock/005930","closePrice|nv"],
+    ["네이버 기본","https://api.stock.naver.com/stock/005930/basic","closePrice"],
+    ["Yahoo","https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=5d","chart"]
+  ];
+  for(const [nm,url,key]of tests){
+    const {list}=proxies(bust(url));let done=false;
+    for(let i=0;i<list.length&&!done;i++){
+      try{
+        const t0=performance.now();
+        const r=await fetch(list[i],{cache:"no-store"});
+        const b=await r.text();
+        if(r.ok&&new RegExp(key).test(b)){
+          out.textContent+="정상  "+nm+"  ("+Math.round(performance.now()-t0)+"ms, 경로 "+(i+1)+")\n";
+          done=true;
+        }
+      }catch(e){}
     }
+    if(!done)out.textContent+="차단  "+nm+"  모든 경로 실패\n";
   }
-  out.textContent += "\n" + (alive
-    ? "사용 가능한 경로 " + alive + "개. 조회가 정상 작동합니다."
-    : "모든 경로가 막혔습니다. 이 파일을 내려받아 브라우저에서 직접 열거나, 사내망이라면 외부 접속 정책을 확인하세요.");
+  out.textContent+="\n국내 종목은 네이버 항목 중 하나만 정상이면 됩니다.\n"+
+    "모두 차단이면 이 파일을 폰에 내려받아 브라우저에서 직접 열었는지 확인하세요.";
 });
-$("testBtn").addEventListener("click", async () => {
-  if(settings.notify && "Notification" in window && Notification.permission === "default"){
-    try{ await Notification.requestPermission(); }catch(e){}
-  }
-  if(settings.sound) beep("up");
-  if(settings.notify && "Notification" in window && Notification.permission === "granted"){
-    try{ new Notification("종가 감시기", { body:"알림이 정상 작동합니다." }); }catch(e){}
-  }
-  logs.unshift({ t:Date.now(), sym:"테스트", dir:"up", msg:"알림 테스트를 실행했습니다." });
-  logs = logs.slice(0,100); save(); renderLog();
+$("expBtn").addEventListener("click",()=>{
+  const b=new Blob([JSON.stringify({cfg,items:items.map(strip)},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(b);
+  a.download="watch-settings.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 });
-$("expBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({ settings, items:items.map(i => ({
-    symbol:i.symbol, name:i.name, upPct:i.upPct, downPct:i.downPct })) }, null, 2)],
-    { type:"application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "price-alert-settings.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-});
-$("impBtn").addEventListener("click", () => $("impFile").click());
-$("impFile").addEventListener("change", e => {
-  const f = e.target.files[0]; if(!f) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    try{
-      const j = JSON.parse(rd.result);
-      if(j.settings) settings = Object.assign({}, DEFAULTS, j.settings);
-      if(Array.isArray(j.items)) items = j.items.map((x, n) => ({
-        id:"i" + Date.now().toString(36) + n, symbol:x.symbol, name:x.name || "",
-        upPct:x.upPct || null, downPct:x.downPct || null,
-        data:null, error:null, lastDir:null, armedAt:null
-      }));
-      save(); loadSettingsUI(); render();
-    }catch(err){ alert("파일을 읽을 수 없습니다: " + err.message); }
-  };
-  rd.readAsText(f);
-  e.target.value = "";
+$("impBtn").addEventListener("click",()=>$("impFile").click());
+$("impFile").addEventListener("change",e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);
+    if(j.cfg)cfg=Object.assign({},DEF,j.cfg);
+    if(Array.isArray(j.items))items=j.items.map((x,n)=>({id:"i"+Date.now().toString(36)+n,
+      symbol:x.symbol,name:x.name||"",kind:x.kind||(isKR(x.symbol)?"kr":"us"),
+      upPct:x.upPct||null,downPct:x.downPct||null,data:null,error:null,lastDir:null,armed:null}));
+    save();loadCfg();render()}catch(err){alert("파일을 읽을 수 없습니다: "+err.message)}};
+  r.readAsText(f);e.target.value="";
 });
 
-/* ── 시작 ── */
-loadSettingsUI();
-render();
-renderLog();
-if(!items.length) $("cfgBox").open = true;
-// 알림 플래시가 끝난 카드만 정리 (불필요한 전체 재렌더링 방지)
-setInterval(() => {
-  const stale = items.filter(i => i.fireAt && Date.now() - i.fireAt >= 4000);
-  if(stale.length){ stale.forEach(i => { i.fireAt = null; }); render(); }
-}, 1000);
+/* ── 초기화 ── */
+loadCfg();render();renderLog();
+setInterval(()=>{const s=items.filter(i=>i.fire&&Date.now()-i.fire>=4000);
+  if(s.length){s.forEach(i=>{i.fire=null});render()}},1000);
 </script>
 </body>
 </html>
