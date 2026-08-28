@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>종가 감시기 — 전일 대비 변동 알림</title>
+<style>
+  :root{
+    --ink:#0E1116;
+    --panel:#161A21;
+    --panel-2:#1D222B;
+    --line:#2A313D;
+    --text:#E9EDF3;
+    --muted:#8C96A6;
+    --up:#FF5A4E;
+    --down:#4D8DFF;
+    --flat:#9AA3B2;
+    --signal:#F5C451;
+    --ok:#3ECf8E;
+    --r:14px;
+    --mono:"SFMono-Regular",Consolas,"Roboto Mono","DejaVu Sans Mono",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-text-size-adjust:100%;
+    padding:0 0 48px;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+  /* ── header ─────────────────────────────── */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:rgba(14,17,22,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    padding-top:env(safe-area-inset-top);
+  }
+  .bar{display:flex;align-items:center;gap:12px;padding:12px 0}
+  .brand{font-size:18px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+  .brand small{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.14em}
+  .spacer{flex:1}
+  .status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+  .dot.live{background:var(--ok);box-shadow:0 0 0 0 rgba(62,207,142,.6);animation:pulse 2s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 9px rgba(62,207,142,0)}100%{box-shadow:0 0 0 0 rgba(62,207,142,0)}}
+
+  /* ── buttons / inputs ───────────────────── */
+  button{font-family:inherit;font-size:15px;cursor:pointer;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--text);padding:11px 15px;font-weight:600;transition:.15s}
+  button:hover{border-color:#3c4655}
+  button:active{transform:translateY(1px)}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  .btn-run{background:var(--ok);border-color:var(--ok);color:#06231a;min-width:104px}
+  .btn-stop{background:var(--up);border-color:var(--up);color:#2a0a08}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:7px 11px;font-size:13px}
+  input,select{font-family:inherit;font-size:16px;color:var(--text);background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+  input::placeholder{color:#5d6675}
+  label{display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;margin:0 0 6px}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* ── panels ─────────────────────────────── */
+  section{margin-top:16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+  .panel h2{margin:0 0 14px;font-size:13px;letter-spacing:.12em;color:var(--muted);font-weight:800;text-transform:uppercase}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr 1fr}
+  .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0;line-height:1.6}
+  details.cfg summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:800;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+  details.cfg summary::-webkit-details-marker{display:none}
+  details.cfg summary::after{content:"▾";margin-left:auto;font-size:14px;transition:.2s}
+  details.cfg[open] summary::after{transform:rotate(180deg)}
+  details.cfg[open] .cfg-body{margin-top:16px}
+  .switch{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:10px;padding:11px 12px;font-size:14px;font-weight:600;cursor:pointer}
+  .switch input{width:18px;height:18px;accent-color:var(--signal);flex:none;padding:0}
+
+  /* ── watch cards ────────────────────────── */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:12px;
+    position:relative;overflow:hidden}
+  .card.up{border-color:rgba(255,90,78,.55)}
+  .card.down{border-color:rgba(77,141,255,.55)}
+  .card.fire::before{content:"";position:absolute;inset:0;background:var(--signal);opacity:0;
+    animation:flash 1s ease-out 3;pointer-events:none}
+  @keyframes flash{0%{opacity:.16}100%{opacity:0}}
+  .card-top{display:flex;align-items:flex-start;gap:12px}
+  .tick{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:.02em}
+  .tick em{font-style:normal;color:var(--muted);font-size:12px;display:block;margin-top:2px;font-family:var(--sans);font-weight:600}
+  .pct{margin-left:auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:34px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .pct span{display:block;font-size:13px;font-weight:600;margin-top:5px}
+  .u{color:var(--up)} .d{color:var(--down)} .f{color:var(--flat)}
+  .prices{display:flex;gap:0;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .prices div{flex:1}
+  .prices dt{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.06em;margin-bottom:3px}
+  .prices dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:700}
+
+  /* signature: threshold gauge */
+  .gauge{margin-top:14px;height:34px;position:relative}
+  .track{position:absolute;left:0;right:0;top:13px;height:8px;border-radius:4px;
+    background:linear-gradient(90deg,rgba(77,141,255,.30),rgba(154,163,178,.16) 42%,rgba(154,163,178,.16) 58%,rgba(255,90,78,.30))}
+  .zone{position:absolute;top:8px;height:18px;width:2px;background:var(--muted);opacity:.75}
+  .zone b{position:absolute;top:20px;left:50%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .zero{position:absolute;left:50%;top:10px;height:14px;width:1px;background:#4a5464}
+  .marker{position:absolute;top:9px;width:16px;height:16px;border-radius:50%;background:var(--text);
+    border:3px solid var(--ink);transform:translateX(-50%);transition:left .5s cubic-bezier(.2,.8,.2,1)}
+  .marker.u{background:var(--up)} .marker.d{background:var(--down)}
+  .card-foot{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .card-foot .spacer{flex:1}
+  .err{color:var(--signal);font-family:var(--sans);font-weight:600}
+  .tag{font-size:11px;font-family:var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--muted)}
+
+  /* ── log ────────────────────────────────── */
+  .log{list-style:none;margin:0;padding:0;max-height:320px;overflow:auto}
+  .log li{display:flex;gap:11px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .log li:last-child{border-bottom:0}
+  .log time{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
+  .log b{font-family:var(--mono)}
+  .empty{color:var(--muted);font-size:14px;text-align:center;padding:22px 0}
+  footer{color:#5d6675;font-size:11.5px;line-height:1.7;margin-top:22px;text-align:center}
+  @media (max-width:520px){
+    .g3{grid-template-columns:1fr 1fr}
+    .pct{font-size:30px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand">종가 감시기<small>PRICE ALERT</small></div>
+    <div class="spacer"></div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">대기 중</span></div>
+    <button id="runBtn" class="btn-run">감시 시작</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 종목 추가 -->
+  <section class="panel">
+    <h2>감시 종목 추가</h2>
+    <div class="grid g2">
+      <div>
+        <label for="symIn">티커</label>
+        <input id="symIn" placeholder="예: 069500.KS" autocapitalize="characters" autocomplete="off">
+      </div>
+      <div>
+        <label for="nameIn">표시 이름 (선택)</label>
+        <input id="nameIn" placeholder="예: KODEX 200" autocomplete="off">
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:12px">
+      <div>
+        <label for="upIn">상승 기준 %</label>
+        <input id="upIn" class="num" type="number" step="0.1" min="0.1" placeholder="기본값 사용">
+      </div>
+      <div>
+        <label for="downIn">하락 기준 %</label>
+        <input id="downIn" class="num" type="number" step="0.1" min="0.1" placeholder="기본값 사용">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button id="addBtn" style="width:100%">추가</button>
+      </div>
+    </div>
+    <p class="hint">국내 종목·ETF는 <b>498400.KS</b>처럼 뒤에 <b>.KS</b>(코스피) 또는 <b>.KQ</b>(코스닥)를 붙입니다. 6자리 숫자만 넣으면 코스피 → 코스닥 순으로 알아서 찾고, <b>498400 KS</b>처럼 공백으로 써도 점으로 고쳐 넣습니다. 미국 종목은 그대로 — <b>SPY</b>, <b>QQQ</b>, <b>AAPL</b>.</p>
+  </section>
+
+  <!-- 감시 목록 -->
+  <section id="listWrap"></section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <details class="cfg" id="cfgBox">
+      <summary>기준값 · 데이터 설정</summary>
+      <div class="cfg-body">
+        <div class="grid g3">
+          <div>
+            <label for="gUp">기본 상승 기준 %</label>
+            <input id="gUp" class="num" type="number" step="0.1" min="0.1" value="1">
+          </div>
+          <div>
+            <label for="gDown">기본 하락 기준 %</label>
+            <input id="gDown" class="num" type="number" step="0.1" min="0.1" value="1">
+          </div>
+          <div>
+            <label for="gCool">재알림 간격 (분)</label>
+            <input id="gCool" class="num" type="number" step="1" min="1" value="10">
+          </div>
+        </div>
+        <div class="grid g2" style="margin-top:12px">
+          <div>
+            <label for="gInt">조회 주기 (초)</label>
+            <input id="gInt" class="num" type="number" step="5" min="10" value="60">
+          </div>
+          <div>
+            <label for="gSrc">시세 출처</label>
+            <select id="gSrc">
+              <option value="yahoo">Yahoo Finance (국내+해외, 키 불필요)</option>
+              <option value="finnhub">Finnhub (해외 전용, API 키 필요)</option>
+            </select>
+          </div>
+        </div>
+        <div id="keyRow" style="margin-top:12px;display:none">
+          <label for="gKey">Finnhub API 키</label>
+          <input id="gKey" type="password" placeholder="finnhub.io 무료 키" autocomplete="off">
+        </div>
+        <div id="proxyRow" style="margin-top:12px">
+          <label for="gProxy">CORS 프록시 (선택 · <code>{url}</code> 자리표시자)</label>
+          <input id="gProxy" placeholder="비워두면 공개 프록시를 순서대로 시도" autocomplete="off">
+        </div>
+        <div class="grid g3" style="margin-top:12px">
+          <label class="switch"><input type="checkbox" id="gSound" checked>소리</label>
+          <label class="switch"><input type="checkbox" id="gNotify" checked>브라우저 알림</label>
+          <label class="switch"><input type="checkbox" id="gWake">화면 켜둠</label>
+        </div>
+        <div class="grid g2" style="margin-top:12px">
+          <button class="btn-ghost btn-sm" id="connBtn">연결 진단</button>
+          <button class="btn-ghost btn-sm" id="testBtn">알림 테스트</button>
+          <button class="btn-ghost btn-sm" id="expBtn">설정 내보내기</button>
+          <button class="btn-ghost btn-sm" id="impBtn">설정 불러오기</button>
+        </div>
+        <pre id="connOut" class="num" style="display:none;margin:12px 0 0;padding:12px;background:var(--panel-2);
+          border:1px solid var(--line);border-radius:10px;font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--muted)"></pre>
+        <input type="file" id="impFile" accept="application/json" style="display:none">
+        <p class="hint"><b>Failed to fetch</b>가 뜨면 이 파일을 내려받아 브라우저에서 직접 여세요. 대화창 미리보기 안에서는 외부 시세 서버 호출이 차단됩니다. 그래도 안 되면 <b>연결 진단</b>을 눌러 어느 경로가 살아 있는지 확인하세요.<br>브라우저를 닫으면 감시가 멈추니 탭은 열어둔 채로 두세요. 조회 주기를 10초 아래로 내리면 시세 서버가 차단할 수 있습니다.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- 알림 기록 -->
+  <section class="panel">
+    <h2 style="display:flex;align-items:center">알림 기록
+      <button class="btn-ghost btn-sm" id="clearLog" style="margin-left:auto">지우기</button>
+    </h2>
+    <ul class="log" id="log"><li class="empty" style="display:block">아직 알림이 없습니다.</li></ul>
+  </section>
+
+  <footer>
+    시세는 출처에 따라 15~20분 지연될 수 있습니다. 투자 판단의 참고용이며, 체결 가격을 보장하지 않습니다.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ── 저장소 (localStorage 불가 환경에서는 메모리로 대체) ── */
+const store = (() => {
+  let mem = {}, ok = false;
+  try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); ok = true; } catch(e) { ok = false; }
+  return {
+    get(k, d){ try{ const v = ok ? localStorage.getItem(k) : mem[k]; return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+    set(k, v){ try{ const s = JSON.stringify(v); if(ok) localStorage.setItem(k,s); else mem[k]=s; }catch(e){} }
+  };
+})();
+
+const DEFAULTS = {
+  upPct:1, downPct:1, coolMin:10, intervalSec:60,
+  source:"yahoo", key:"", proxy:"", sound:true, notify:true, wake:false
+};
+
+let settings = Object.assign({}, DEFAULTS, store.get("pa.settings", {}));
+let items    = store.get("pa.items", []);
+let logs     = store.get("pa.logs", []);
+let timer = null, running = false, audioCtx = null, wakeLock = null, busy = false;
+
+const $ = id => document.getElementById(id);
+const save = () => { store.set("pa.settings", settings); store.set("pa.items", items); store.set("pa.logs", logs); };
+
+/* ── 설정 UI 바인딩 ── */
+const bind = [
+  ["gUp","upPct","number"],["gDown","downPct","number"],["gCool","coolMin","number"],
+  ["gInt","intervalSec","number"],["gSrc","source","text"],["gKey","key","text"],
+  ["gProxy","proxy","text"],["gSound","sound","bool"],["gNotify","notify","bool"],["gWake","wake","bool"]
+];
+function loadSettingsUI(){
+  bind.forEach(([id,k,t]) => {
+    const el = $(id); if(!el) return;
+    if(t === "bool") el.checked = !!settings[k]; else el.value = settings[k];
+  });
+  $("keyRow").style.display   = settings.source === "finnhub" ? "block" : "none";
+  $("proxyRow").style.display = settings.source === "yahoo"   ? "block" : "none";
+}
+bind.forEach(([id,k,t]) => {
+  const el = $(id); if(!el) return;
+  el.addEventListener("change", () => {
+    if(t === "bool") settings[k] = el.checked;
+    else if(t === "number"){ const n = parseFloat(el.value); settings[k] = isFinite(n) && n > 0 ? n : DEFAULTS[k]; el.value = settings[k]; }
+    else settings[k] = el.value.trim();
+    if(k === "source") loadSettingsUI();
+    if(k === "intervalSec" && running) restartTimer();
+    if(k === "wake") settings.wake && running ? requestWake() : releaseWake();
+    save(); render();
+  });
+});
+
+/* ── 티커 정규화 ── */
+// "498400 KS", "498400-ks", "498400" → "498400.KS" 후보 생성
+function normalizeSymbol(raw){
+  let s = String(raw || "").trim().toUpperCase().replace(/\s+/g, " ");
+  s = s.replace(/[\s_\-.]+(KS|KQ)$/, ".$1");
+  return s;
+}
+function candidates(sym){
+  if(/^\d{6}$/.test(sym)) return [sym + ".KS", sym + ".KQ"]; // 코스피 먼저, 없으면 코스닥
+  return [sym];
+}
+function friendlyErr(msg){
+  const m = String(msg || "");
+  if(/failed to fetch|networkerror|load failed|typeerror/i.test(m))
+    return "네트워크 차단 — 이 HTML 파일을 내려받아 브라우저에서 직접 열어야 시세를 가져옵니다";
+  return m;
+}
+
+/* ── 시세 조회 ── */
+function proxyList(url){
+  const enc = encodeURIComponent(url), out = [];
+  if(settings.proxy) out.push(settings.proxy.includes("{url}") ? settings.proxy.replace("{url}", enc) : settings.proxy + enc);
+  out.push("https://api.allorigins.win/raw?url=" + enc);
+  out.push("https://corsproxy.io/?url=" + enc);
+  out.push("https://api.codetabs.com/v1/proxy/?quest=" + enc);
+  out.push("https://api.cors.lol/?url=" + enc);
+  out.push(url); // 직접 호출 (일부 환경에서 통과)
+  return out;
+}
+
+async function fetchYahoo(symbol){
+  const url = "https://query1.finance.yahoo.com/v8/finance/chart/" +
+              encodeURIComponent(symbol) + "?interval=1d&range=10d";
+  let lastErr = "";
+  for(const target of proxyList(url)){
+    try{
+      const res = await fetch(target, { cache:"no-store" });
+      if(!res.ok){ lastErr = "HTTP " + res.status; continue; }
+      const raw = await res.text();
+      let data;
+      try{ data = JSON.parse(raw); }catch(pe){ lastErr = "프록시 응답 형식 오류"; continue; }
+      const r = data && data.chart && data.chart.result && data.chart.result[0];
+      if(!r){
+        // 야후가 정상 응답했는데 결과가 없으면 = 존재하지 않는 티커. 다른 프록시를 시도할 필요 없음
+        if(data && data.chart) throw new Error("NOT_FOUND");
+        lastErr = "응답을 해석할 수 없음"; continue;
+      }
+      const m = r.meta || {};
+      const closes = ((r.indicators && r.indicators.quote && r.indicators.quote[0] || {}).close || [])
+        .filter(v => typeof v === "number");
+      const price = m.regularMarketPrice != null ? m.regularMarketPrice : closes[closes.length-1];
+      let prev = m.previousClose != null ? m.previousClose : m.chartPreviousClose;
+      if(prev == null) prev = closes[closes.length-2];
+      if(price == null || prev == null){ lastErr = "가격 데이터 없음"; continue; }
+      return {
+        price, prev,
+        currency: m.currency || "",
+        name: m.shortName || m.symbol || symbol,
+        time: (m.regularMarketTime ? m.regularMarketTime*1000 : Date.now()),
+        state: m.marketState || ""
+      };
+    }catch(e){
+      if(e && e.message === "NOT_FOUND") throw e;
+      lastErr = friendlyErr(e.message) || "네트워크 오류";
+    }
+  }
+  throw new Error(lastErr || "조회 실패");
+}
+
+async function fetchFinnhub(symbol){
+  if(!settings.key) throw new Error("Finnhub API 키를 입력하세요");
+  const res = await fetch("https://finnhub.io/api/v1/quote?symbol=" +
+    encodeURIComponent(symbol) + "&token=" + encodeURIComponent(settings.key), { cache:"no-store" });
+  if(res.status === 401 || res.status === 403) throw new Error("API 키가 거부됨");
+  if(res.status === 429) throw new Error("호출 한도 초과 — 주기를 늘리세요");
+  if(!res.ok) throw new Error("HTTP " + res.status);
+  const q = await res.json();
+  if(!q || !q.c) throw new Error("종목을 찾을 수 없음");
+  return { price:q.c, prev:q.pc, currency:"USD", name:symbol, time:(q.t ? q.t*1000 : Date.now()), state:"" };
+}
+
+// 후보 티커를 순서대로 시도하고, 성공한 티커를 resolved로 함께 돌려줍니다
+async function fetchQuote(sym){
+  if(settings.source === "finnhub"){
+    const q = await fetchFinnhub(sym);
+    q.resolved = sym;
+    return q;
+  }
+  const list = candidates(sym);
+  let last = null;
+  for(const cand of list){
+    try{
+      const q = await fetchYahoo(cand);
+      q.resolved = cand;
+      return q;
+    }catch(e){
+      last = e;
+      if(e.message !== "NOT_FOUND") throw new Error(friendlyErr(e.message));
+    }
+  }
+  throw new Error("종목을 찾을 수 없음 — 국내는 " + list[0] + " 형식으로 입력하세요");
+}
+
+/* ── 조회 루프 ── */
+async function refreshAll(){
+  if(busy) return;
+  busy = true;
+  setStatus("조회 중…");
+  for(const it of items){
+    try{
+      const q = await fetchQuote(it.symbol);
+      it.data = q; it.error = null;
+      if(q.resolved) it.symbol = q.resolved;
+      if(!it.name) it.displayName = q.name;
+      checkAlert(it);
+    }catch(e){
+      it.error = friendlyErr(e.message) || "조회 실패";
+    }
+    render();
+    await new Promise(r => setTimeout(r, 350)); // 프록시 부하 완화
+  }
+  busy = false;
+  save();
+  setStatus(running ? "감시 중 · " + timeStr(Date.now()) : "대기 중");
+}
+
+function checkAlert(it){
+  const up = it.upPct || settings.upPct, down = it.downPct || settings.downPct;
+  const chg = ((it.data.price - it.data.prev) / it.data.prev) * 100;
+  const dir = chg >= up ? "up" : (chg <= -down ? "down" : null);
+  if(!dir){ it.armedAt = null; it.lastDir = null; return; }
+  const now = Date.now();
+  const fresh = it.lastDir !== dir || !it.armedAt || (now - it.armedAt) > settings.coolMin * 60000;
+  if(!fresh) return;
+  it.lastDir = dir; it.armedAt = now; it.fireAt = now;
+  fire(it, dir, chg);
+}
+
+function fire(it, dir, chg){
+  const label = labelOf(it);
+  const txt = (dir === "up" ? "▲ 상승 " : "▼ 하락 ") + fmtPct(chg) +
+              " · 현재 " + fmtNum(it.data.price, it.data.currency) +
+              " (전일 " + fmtNum(it.data.prev, it.data.currency) + ")";
+  logs.unshift({ t:Date.now(), sym:label, dir, msg:txt });
+  logs = logs.slice(0, 100);
+  save(); renderLog();
+  if(settings.sound) beep(dir);
+  if(settings.notify && "Notification" in window && Notification.permission === "granted"){
+    try{ new Notification(label + " " + fmtPct(chg), { body:txt, tag:it.id, renotify:true }); }catch(e){}
+  }
+}
+
+/* ── 소리 ── */
+function beep(dir){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    const seq = dir === "up" ? [660, 880, 1046] : [660, 494, 392];
+    seq.forEach((f, i) => {
+      const t0 = audioCtx.currentTime + i * 0.16;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.30);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0); o.stop(t0 + 0.32);
+    });
+  }catch(e){}
+}
+
+/* ── 화면 켜둠 ── */
+async function requestWake(){
+  try{ if("wakeLock" in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){} }
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible" && running && settings.wake) requestWake();
+});
+
+/* ── 시작 / 정지 ── */
+function restartTimer(){
+  clearInterval(timer);
+  timer = setInterval(refreshAll, Math.max(10, settings.intervalSec) * 1000);
+}
+async function start(){
+  if(!items.length){ alert("감시할 종목을 먼저 추가하세요."); return; }
+  running = true;
+  if(settings.notify && "Notification" in window && Notification.permission === "default"){
+    try{ await Notification.requestPermission(); }catch(e){}
+  }
+  if(settings.sound){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      audioCtx.resume();
+    }catch(e){}
+  }
+  if(settings.wake) requestWake();
+  $("runBtn").textContent = "감시 정지";
+  $("runBtn").className = "btn-stop";
+  $("dot").className = "dot live";
+  restartTimer();
+  refreshAll();
+}
+function stop(){
+  running = false;
+  clearInterval(timer); timer = null;
+  releaseWake();
+  $("runBtn").textContent = "감시 시작";
+  $("runBtn").className = "btn-run";
+  $("dot").className = "dot";
+  setStatus("대기 중");
+}
+$("runBtn").addEventListener("click", () => running ? stop() : start());
+
+/* ── 종목 추가 / 삭제 ── */
+$("addBtn").addEventListener("click", addItem);
+$("symIn").addEventListener("keydown", e => { if(e.key === "Enter") addItem(); });
+function addItem(){
+  const sym = normalizeSymbol($("symIn").value);
+  if(!sym){ $("symIn").focus(); return; }
+  if(items.some(i => i.symbol === sym)){ alert("이미 감시 중인 종목입니다."); return; }
+  const up = parseFloat($("upIn").value), down = parseFloat($("downIn").value);
+  items.push({
+    id: "i" + Date.now().toString(36),
+    symbol: sym,
+    name: $("nameIn").value.trim(),
+    upPct: isFinite(up) && up > 0 ? up : null,
+    downPct: isFinite(down) && down > 0 ? down : null,
+    data: null, error: null, lastDir: null, armedAt: null
+  });
+  $("symIn").value = ""; $("nameIn").value = ""; $("upIn").value = ""; $("downIn").value = "";
+  save(); render();
+  const it = items[items.length-1];
+  fetchQuote(sym).then(q => {
+                   it.data = q; it.error = null;
+                   if(q.resolved) it.symbol = q.resolved;
+                   if(!it.name) it.displayName = q.name;
+                   checkAlert(it);
+                 })
+                 .catch(e => { it.error = friendlyErr(e.message); })
+                 .finally(() => { save(); render(); });
+}
+
+/* ── 포맷 ── */
+const labelOf = it => it.name || it.displayName || it.symbol;
+const timeStr = t => new Date(t).toLocaleTimeString("ko-KR", { hour12:false });
+function fmtPct(v){ return (v > 0 ? "+" : "") + v.toFixed(2) + "%"; }
+function fmtNum(v, cur){
+  if(v == null) return "—";
+  const krw = cur === "KRW";
+  return v.toLocaleString("ko-KR", {
+    minimumFractionDigits: krw ? 0 : 2,
+    maximumFractionDigits: krw ? 0 : 2
+  });
+}
+function setStatus(s){ $("statusText").textContent = s; }
+
+/* ── 렌더 ── */
+function render(){
+  const wrap = $("listWrap");
+  if(!items.length){
+    wrap.innerHTML = '<div class="panel"><p class="empty">감시 중인 종목이 없습니다. 위에서 티커를 추가하세요.</p></div>';
+    return;
+  }
+  wrap.innerHTML = items.map(it => {
+    const up = it.upPct || settings.upPct, down = it.downPct || settings.downPct;
+    const d = it.data;
+    const chg = d ? ((d.price - d.prev) / d.prev) * 100 : null;
+    const cls = chg == null ? "f" : (chg > 0 ? "u" : (chg < 0 ? "d" : "f"));
+    const state = chg == null ? "" : (chg >= up ? "up" : (chg <= -down ? "down" : ""));
+    const fireCls = it.fireAt && Date.now() - it.fireAt < 4000 ? " fire" : "";
+    const span = Math.max(up, down) * 1.7;
+    const pos = chg == null ? 50 : Math.min(97, Math.max(3, 50 + (chg / span) * 50));
+    const upPos = Math.min(97, 50 + (up / span) * 50);
+    const dnPos = Math.max(3, 50 - (down / span) * 50);
+    const diff = d ? d.price - d.prev : null;
+
+    return '<div class="card ' + state + fireCls + '">' +
+      '<div class="card-top">' +
+        '<div class="tick">' + esc(it.symbol) + '<em>' + esc(it.name || (d && d.name) || "") + '</em></div>' +
+        '<div class="pct ' + cls + '">' + (chg == null ? "—" : fmtPct(chg)) +
+          '<span>' + (diff == null ? "" : (diff > 0 ? "+" : "") + fmtNum(diff, d.currency)) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="prices">' +
+        '<div><dt>전일 종가</dt><dd>' + (d ? fmtNum(d.prev, d.currency) : "—") + '</dd></div>' +
+        '<div><dt>현재가</dt><dd class="' + cls + '">' + (d ? fmtNum(d.price, d.currency) : "—") + '</dd></div>' +
+      '</div>' +
+      '<div class="gauge">' +
+        '<div class="track"></div><div class="zero"></div>' +
+        '<div class="zone" style="left:' + dnPos + '%"><b>-' + down + '%</b></div>' +
+        '<div class="zone" style="left:' + upPos + '%"><b>+' + up + '%</b></div>' +
+        '<div class="marker ' + cls + '" style="left:' + pos + '%"></div>' +
+      '</div>' +
+      '<div class="card-foot">' +
+        (it.error ? '<span class="err">' + esc(it.error) + '</span>'
+                  : '<span>' + (d ? timeStr(d.time) + " 기준" : "조회 대기") + '</span>') +
+        '<span class="spacer"></span>' +
+        '<span class="tag">기준 +' + up + ' / -' + down + '</span>' +
+        '<button class="btn-ghost btn-sm" data-del="' + it.id + '">삭제</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  wrap.querySelectorAll("[data-del]").forEach(b => {
+    b.addEventListener("click", () => {
+      items = items.filter(i => i.id !== b.dataset.del);
+      save(); render();
+    });
+  });
+}
+
+function renderLog(){
+  const el = $("log");
+  if(!logs.length){ el.innerHTML = '<li class="empty" style="display:block">아직 알림이 없습니다.</li>'; return; }
+  el.innerHTML = logs.map(l =>
+    '<li><time>' + timeStr(l.t) + '</time><b class="' + (l.dir === "up" ? "u" : "d") + '">' +
+    esc(l.sym) + '</b><span>' + esc(l.msg) + '</span></li>'
+  ).join("");
+}
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+/* ── 보조 버튼 ── */
+$("clearLog").addEventListener("click", () => { logs = []; save(); renderLog(); });
+
+$("connBtn").addEventListener("click", async () => {
+  const out = $("connOut");
+  out.style.display = "block";
+  out.textContent = "경로를 하나씩 확인하는 중…\n";
+  const url = "https://query1.finance.yahoo.com/v8/finance/chart/069500.KS?interval=1d&range=5d";
+  const targets = proxyList(url);
+  const names = ["내 프록시","allorigins","corsproxy.io","codetabs","cors.lol","직접 호출"];
+  const offset = settings.proxy ? 0 : 1;
+  let alive = 0;
+  for(let i = 0; i < targets.length; i++){
+    const label = names[i + offset] || "경로 " + (i+1);
+    try{
+      const t0 = performance.now();
+      const res = await fetch(targets[i], { cache:"no-store" });
+      const body = await res.text();
+      const ms = Math.round(performance.now() - t0);
+      const good = res.ok && body.indexOf("chart") > -1;
+      if(good) alive++;
+      out.textContent += (good ? "정상  " : "실패  ") + label.padEnd(12) +
+        (good ? ms + "ms" : "HTTP " + res.status) + "\n";
+    }catch(e){
+      out.textContent += "차단  " + label.padEnd(12) + (e.message || "네트워크 오류") + "\n";
+    }
+  }
+  out.textContent += "\n" + (alive
+    ? "사용 가능한 경로 " + alive + "개. 조회가 정상 작동합니다."
+    : "모든 경로가 막혔습니다. 이 파일을 내려받아 브라우저에서 직접 열거나, 사내망이라면 외부 접속 정책을 확인하세요.");
+});
+$("testBtn").addEventListener("click", async () => {
+  if(settings.notify && "Notification" in window && Notification.permission === "default"){
+    try{ await Notification.requestPermission(); }catch(e){}
+  }
+  if(settings.sound) beep("up");
+  if(settings.notify && "Notification" in window && Notification.permission === "granted"){
+    try{ new Notification("종가 감시기", { body:"알림이 정상 작동합니다." }); }catch(e){}
+  }
+  logs.unshift({ t:Date.now(), sym:"테스트", dir:"up", msg:"알림 테스트를 실행했습니다." });
+  logs = logs.slice(0,100); save(); renderLog();
+});
+$("expBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ settings, items:items.map(i => ({
+    symbol:i.symbol, name:i.name, upPct:i.upPct, downPct:i.downPct })) }, null, 2)],
+    { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "price-alert-settings.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+$("impBtn").addEventListener("click", () => $("impFile").click());
+$("impFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const j = JSON.parse(rd.result);
+      if(j.settings) settings = Object.assign({}, DEFAULTS, j.settings);
+      if(Array.isArray(j.items)) items = j.items.map((x, n) => ({
+        id:"i" + Date.now().toString(36) + n, symbol:x.symbol, name:x.name || "",
+        upPct:x.upPct || null, downPct:x.downPct || null,
+        data:null, error:null, lastDir:null, armedAt:null
+      }));
+      save(); loadSettingsUI(); render();
+    }catch(err){ alert("파일을 읽을 수 없습니다: " + err.message); }
+  };
+  rd.readAsText(f);
+  e.target.value = "";
+});
+
+/* ── 시작 ── */
+loadSettingsUI();
+render();
+renderLog();
+if(!items.length) $("cfgBox").open = true;
+// 알림 플래시가 끝난 카드만 정리 (불필요한 전체 재렌더링 방지)
+setInterval(() => {
+  const stale = items.filter(i => i.fireAt && Date.now() - i.fireAt >= 4000);
+  if(stale.length){ stale.forEach(i => { i.fireAt = null; }); render(); }
+}, 1000);
+</script>
+</body>
+</html>
