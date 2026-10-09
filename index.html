@@ -3,328 +3,202 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>KR 코드 일괄 변환기</title>
 <style>
-  :root {
-    color-scheme: light;
-    --bg:#f5f7fb;
-    --card:#fff;
-    --ink:#172238;
-    --muted:#64748b;
-    --line:#dce3ed;
-    --blue:#2457d6;
-    --blue2:#1742b5;
-  }
-  * { box-sizing:border-box; }
-  body {
-    margin:0;
-    padding:28px 16px 48px;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:system-ui,-apple-system,
-      "Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-    font-size:16px;
-  }
-  main { max-width:850px; margin:auto; }
-  h1 {
-    font-size:clamp(23px,4vw,31px);
-    margin:0 0 9px;
-    letter-spacing:-.7px;
-  }
-  .intro {
-    color:var(--muted);
-    line-height:1.6;
-    margin:0 0 25px;
-  }
-  .panel {
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:16px;
-    padding:22px;
-    box-shadow:0 3px 18px rgba(20,34,60,.04);
-  }
-  .field-label {
-    display:block;
-    font-weight:750;
-    margin-bottom:10px;
-  }
-  textarea, input {
-    font:inherit;
-    color:var(--ink);
-    border:1.5px solid #c7d2e1;
-    border-radius:10px;
-    background:white;
-  }
-  textarea {
-    display:block;
-    width:100%;
-    min-height:190px;
-    padding:14px;
-    line-height:1.6;
-    resize:vertical;
-    overflow-wrap:anywhere;
-  }
-  textarea:focus, input:focus {
-    outline:3px solid #b7cbff;
-    border-color:var(--blue);
-  }
-  textarea[readonly] { background:#f8fbff; }
-  .options {
-    display:flex;
-    align-items:flex-end;
-    gap:12px;
-    flex-wrap:wrap;
-    margin:20px 0;
-  }
-  .target-field { flex:1 1 210px; }
-  input {
-    width:100%;
-    height:49px;
-    padding:0 14px;
-    font-weight:700;
-    letter-spacing:.5px;
-  }
-  .btn {
-    border:0;
-    border-radius:10px;
-    min-height:49px;
-    padding:12px 20px;
-    font:inherit;
-    font-weight:750;
-    cursor:pointer;
-  }
-  .btn-primary {
-    background:var(--blue);
-    color:#fff;
-  }
-  .btn-primary:hover { background:var(--blue2); }
-  .btn-secondary {
-    background:#e9efff;
-    color:var(--blue2);
-  }
-  .btn-secondary:hover { background:#dbe6ff; }
-  .btn:focus-visible {
-    outline:3px solid #97b4ff;
-    outline-offset:2px;
-  }
-  .result-head {
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-bottom:10px;
-  }
-  .result-head .field-label { margin-bottom:0; }
-  .count {
-    color:#4b628a;
-    font-size:14px;
-  }
-  .copy-row {
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    margin-top:14px;
-  }
-  #status {
-    min-height:24px;
-    color:var(--muted);
-    font-size:14px;
-    line-height:1.5;
-  }
-  .hint {
-    font-size:14px;
-    margin-top:18px;
-    color:var(--muted);
-    line-height:1.7;
-  }
-  @media (max-width:530px) {
-    body { padding:17px 12px 30px; }
-    .panel { padding:16px; }
-    textarea { min-height:210px; }
-    .options { gap:11px; }
-    .options .btn { flex:1 1 100%; }
-    .copy-row .btn { width:100%; }
-  }
+*{box-sizing:border-box}
+body{
+  margin:0;padding:12px;
+  background:#f4f6fa;color:#18243b;
+  font:14px system-ui,"Malgun Gothic",sans-serif;
+}
+main{max-width:780px;margin:auto}
+h1{font-size:21px;margin:2px 0 10px}
+.panel{
+  background:white;border:1px solid #dce3ed;
+  border-radius:12px;padding:14px;
+}
+label{display:block;font-weight:700;margin-bottom:5px}
+textarea,input{
+  width:100%;border:1px solid #cbd5e1;
+  border-radius:7px;padding:9px;
+  font:14px system-ui,sans-serif;
+  color:#172238;
+}
+textarea{
+  height:90px;resize:vertical;
+  line-height:1.45;
+  display:block;
+}
+textarea[readonly]{background:#f8faff}
+input{height:38px}
+textarea:focus,input:focus{
+  outline:2px solid #a6bfff;
+  border-color:#3565d8;
+}
+.controls{
+  display:flex;align-items:end;gap:7px;
+  margin:10px 0;
+}
+.code-field{flex:1;min-width:0}
+button{
+  height:38px;border:0;border-radius:7px;
+  padding:0 13px;white-space:nowrap;
+  font:700 13px system-ui,sans-serif;
+  cursor:pointer;
+}
+.primary{background:#2457d6;color:white}
+.secondary{background:#e8edfa;color:#244d9c}
+.copy{
+  width:100%;margin-top:9px;
+  background:#2457d6;color:white;
+}
+.result-head{
+  display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:5px;
+}
+.result-head label{margin:0}
+#status{font-size:12px;color:#546987}
+@media(max-width:380px){
+  body{padding:8px}
+  .panel{padding:10px}
+  button{padding:0 9px;font-size:12px}
+  textarea{height:78px}
+  h1{font-size:19px}
+}
 </style>
 </head>
 <body>
 <main>
-  <h1>KR 코드 일괄 변환기</h1>
-  <p class="intro">
-    문장을 붙여넣고 새 코드를 지정하세요.
-    문장 속 <b>kr00~kr99</b> 형식의 코드를
-    모두 바꾸고, 결과를 복사할 수 있습니다.
-  </p>
+<h1>KR 코드 일괄 변환기</h1>
 
-  <section class="panel">
-    <label class="field-label" for="source">
-      ① 원본 문장 붙여넣기
-    </label>
-    <textarea
-      id="source"
-      placeholder="여기에 링크나 문장을 붙여넣으세요.&#10;예: https://example.com/kr12/page&#10;예: https://example.com/KR34/page"
-      spellcheck="false"></textarea>
+<div class="panel">
+  <label for="source">① 원본 문장</label>
+  <textarea id="source"
+    placeholder="문장이나 링크를 붙여넣으세요."
+    spellcheck="false"></textarea>
 
-    <div class="options">
-      <div class="target-field">
-        <label class="field-label" for="target">
-          ② 변경할 새 코드
-        </label>
-        <input
-          id="target"
-          type="text"
-          value="kr48"
-          maxlength="4"
-          autocapitalize="off"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="예: kr48 또는 48">
-      </div>
-      <button
-        class="btn btn-primary"
-        id="convert"
-        type="button">
-        변환하기
-      </button>
+  <div class="controls">
+    <div class="code-field">
+      <label for="target">② 새 KR 코드</label>
+      <input id="target" value="kr48"
+        maxlength="4"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false">
     </div>
+    <button class="primary" id="convert">
+      변환하기
+    </button>
+    <button class="secondary" id="reset">
+      초기화
+    </button>
+  </div>
 
-    <div class="result-head">
-      <label class="field-label" for="result">
-        ③ 변환 결과
-      </label>
-      <span class="count" id="count">
-        변경 0개
-      </span>
-    </div>
+  <div class="result-head">
+    <label for="result">③ 변환 결과</label>
+    <span id="status" role="status"
+      aria-live="polite">변경 0개</span>
+  </div>
 
-    <textarea
-      id="result"
-      readonly
-      placeholder="변환한 내용이 여기에 표시됩니다."
-      spellcheck="false"></textarea>
+  <textarea id="result" readonly
+    placeholder="변환 결과가 표시됩니다."
+    spellcheck="false"></textarea>
 
-    <div class="copy-row">
-      <span
-        id="status"
-        role="status"
-        aria-live="polite"></span>
-      <button
-        class="btn btn-secondary"
-        id="copy"
-        type="button">
-        결과 전체 복사하기
-      </button>
-    </div>
-
-    <p class="hint">
-      ※ 대소문자와 관계없이 KR 뒤에
-      <b>숫자 두 자리</b>가 있는 코드를 찾습니다.
-      원본의 <b>KR / kr</b> 대소문자는
-      그대로 유지합니다.
-      다른 글자는 변경하지 않습니다.
-      변환과 복사는 이 기기 안에서 처리됩니다.
-    </p>
-  </section>
+  <button class="copy" id="copy">
+    결과 전체 복사하기
+  </button>
+</div>
 </main>
 
 <script>
 (() => {
-  'use strict';
+  "use strict";
 
-  const source = document.getElementById('source');
-  const target = document.getElementById('target');
-  const result = document.getElementById('result');
-  const count = document.getElementById('count');
-  const status = document.getElementById('status');
-  const convertBtn = document.getElementById('convert');
-  const copyBtn = document.getElementById('copy');
+  const source = document.getElementById("source");
+  const target = document.getElementById("target");
+  const result = document.getElementById("result");
+  const status = document.getElementById("status");
+
+  document.getElementById("convert")
+    .addEventListener("click", convert);
+
+  document.getElementById("reset")
+    .addEventListener("click", reset);
+
+  document.getElementById("copy")
+    .addEventListener("click", copyResult);
 
   function convert() {
-    const typed = target.value.trim();
-    const parsed = /^(?:kr)?(\d{2})$/i.exec(typed);
+    const code = target.value.trim();
+    const match = /^(?:kr)?(\d{2})$/i.exec(code);
 
-    if (!parsed) {
-      status.textContent =
-        '새 코드를 kr48 또는 48처럼 입력해 주세요 (숫자 두 자리).';
+    if (!match) {
+      status.textContent = "코드 확인 필요";
+      alert("kr48 또는 48처럼 입력해 주세요.");
       target.focus();
-      return false;
+      return;
     }
 
     if (!source.value) {
-      result.value = '';
-      count.textContent = '변경 0개';
-      status.textContent = '먼저 원본 문장을 붙여넣어 주세요.';
+      status.textContent = "원본을 입력하세요";
       source.focus();
-      return false;
+      return;
     }
 
-    const digits = parsed[1];
+    const digits = match[1];
     let changes = 0;
 
-    const converted = source.value.replace(
+    result.value = source.value.replace(
       /kr\d{2}(?!\d)/gi,
-      match => {
-        const prefix = match.slice(0, 2);
-        const replacement = prefix + digits;
-        if (replacement !== match) changes++;
-        return replacement;
+      oldCode => {
+        const newCode = oldCode.slice(0, 2) + digits;
+        if (newCode !== oldCode) changes++;
+        return newCode;
       }
     );
 
-    result.value = converted;
-    count.textContent =
-      '실제 변경 ' +
-      changes.toLocaleString('ko-KR') + '개';
+    status.textContent =
+      "변경 " + changes.toLocaleString("ko-KR") + "개";
+  }
 
-    status.textContent = changes
-      ? '변환 완료. 복사 버튼을 누르세요.'
-      : '완료. 변경할 코드가 없거나 이미 같은 코드입니다.';
-
-    return true;
+  function reset() {
+    source.value = "";
+    result.value = "";
+    target.value = "kr48";
+    status.textContent = "변경 0개";
+    source.focus();
   }
 
   async function copyResult() {
     if (!result.value) {
-      status.textContent = '먼저 변환하기를 눌러 주세요.';
+      status.textContent = "변환 결과가 없습니다";
       return;
     }
 
     try {
-      if (navigator.clipboard &&
-          navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(result.value);
-      } else {
-        throw new Error('clipboard API unavailable');
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard unavailable");
       }
-      status.textContent =
-        '복사 완료! 원하는 곳에 붙여넣으세요.';
-    } catch (err) {
+
+      await navigator.clipboard.writeText(result.value);
+      status.textContent = "복사 완료!";
+    } catch (error) {
       result.focus();
       result.select();
 
       let copied = false;
       try {
-        copied = document.execCommand('copy');
-      } catch (_error) {
+        copied = document.execCommand("copy");
+      } catch (e) {
         copied = false;
       }
 
       status.textContent = copied
-        ? '복사 완료! 원하는 곳에 붙여넣으세요.'
-        : '결과가 선택되었습니다. 복사 메뉴 또는 Ctrl+C를 눌러 주세요.';
+        ? "복사 완료!"
+        : "선택된 내용을 직접 복사해 주세요.";
     }
   }
-
-  convertBtn.addEventListener('click', convert);
-  copyBtn.addEventListener('click', copyResult);
-
-  target.addEventListener('keydown', event => {
-    if (event.key === 'Enter') convert();
-  });
 })();
 </script>
 </body>
