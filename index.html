@@ -1,576 +1,331 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="종가감시">
-<meta name="theme-color" content="#0E1116">
-<title>종가 감시</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KR 코드 일괄 변환기</title>
 <style>
-  :root{
-    --ink:#0E1116; --panel:#171C24; --panel2:#212832; --line:#2E3642;
-    --text:#EDF1F7; --muted:#8B95A6;
-    --up:#FF564A; --down:#4D8DFF; --flat:#98A2B3;
-    --signal:#F5C451; --ok:#3ECF8E;
-    --mono:"SFMono-Regular",Consolas,"Roboto Mono",monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
-    --safe-b:env(safe-area-inset-bottom,0px);
+  :root {
+    color-scheme: light;
+    --bg:#f5f7fb;
+    --card:#fff;
+    --ink:#172238;
+    --muted:#64748b;
+    --line:#dce3ed;
+    --blue:#2457d6;
+    --blue2:#1742b5;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;overscroll-behavior-y:none}
-  body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;
-    -webkit-text-size-adjust:100%;padding-bottom:calc(96px + var(--safe-b))}
-  .wrap{max-width:600px;margin:0 auto;padding:0 14px}
-  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-  button{font-family:inherit;font-size:16px;font-weight:700;border-radius:12px;border:1px solid var(--line);
-    background:var(--panel2);color:var(--text);padding:14px 16px;cursor:pointer;min-height:48px}
-  button:active{opacity:.7}
-  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
-  input,select{font-family:inherit;font-size:16px;color:var(--text);background:var(--panel);
-    border:1px solid var(--line);border-radius:12px;padding:14px;width:100%;min-height:50px}
-  input::placeholder{color:#5C6675}
-  label{display:block;font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:0 0 7px}
-  .grid{display:grid;gap:10px}
-  .g2{grid-template-columns:1fr 1fr}
-  .g3{grid-template-columns:1fr 1fr 1fr}
-
-  /* 상단 */
-  header{position:sticky;top:0;z-index:30;background:rgba(14,17,22,.94);backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
-  .bar{display:flex;align-items:center;gap:10px;padding:12px 0;min-height:58px}
-  .brand{font-size:17px;font-weight:900;letter-spacing:-.02em}
-  .stat{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-family:var(--mono)}
-  .dot{width:9px;height:9px;border-radius:50%;background:#48525f;flex:none}
-  .dot.live{background:var(--ok);animation:p 2s infinite}
-  @keyframes p{0%{box-shadow:0 0 0 0 rgba(62,207,142,.55)}70%{box-shadow:0 0 0 8px rgba(62,207,142,0)}100%{box-shadow:0 0 0 0 rgba(62,207,142,0)}}
-
-  /* 카드 */
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin-top:12px;position:relative;overflow:hidden}
-  .card.hitUp{border-color:var(--up);box-shadow:0 0 0 1px rgba(255,86,74,.35)}
-  .card.hitDown{border-color:var(--down);box-shadow:0 0 0 1px rgba(77,141,255,.35)}
-  .card.fire::after{content:"";position:absolute;inset:0;background:var(--signal);opacity:0;animation:fl .9s ease-out 4;pointer-events:none}
-  @keyframes fl{0%{opacity:.18}100%{opacity:0}}
-  .row1{display:flex;align-items:flex-start;gap:10px}
-  .nm{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.3}
-  .cd{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:6px;align-items:center}
-  .badge{font-size:10px;font-weight:800;letter-spacing:.04em;border-radius:5px;padding:2px 6px;
-    border:1px solid var(--line);color:var(--muted)}
-  .badge.rt{color:var(--ok);border-color:rgba(62,207,142,.4)}
-  .badge.dl{color:var(--signal);border-color:rgba(245,196,81,.4)}
-  .pct{margin-left:auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;
-    font-size:36px;font-weight:800;line-height:1;letter-spacing:-.03em}
-  .pct i{display:block;font-style:normal;font-size:14px;font-weight:700;margin-top:6px}
-  .u{color:var(--up)}.d{color:var(--down)}.f{color:var(--flat)}
-  .px{display:flex;margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
-  .px div{flex:1}
-  .px dt{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-bottom:4px}
-  .px dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800}
-  /* 감시 게이지 */
-  .gg{margin-top:18px;height:38px;position:relative}
-  .tr{position:absolute;left:0;right:0;top:14px;height:9px;border-radius:5px;
-    background:linear-gradient(90deg,rgba(77,141,255,.32),rgba(152,162,179,.14) 42%,rgba(152,162,179,.14) 58%,rgba(255,86,74,.32))}
-  .zn{position:absolute;top:9px;height:19px;width:2px;background:#5A6473}
-  .zn b{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap}
-  .zr{position:absolute;left:50%;top:11px;height:15px;width:1px;background:#454F5D}
-  .mk{position:absolute;top:10px;width:18px;height:18px;border-radius:50%;background:var(--flat);
-    border:3px solid var(--ink);transform:translateX(-50%);transition:left .6s cubic-bezier(.2,.8,.2,1)}
-  .mk.u{background:var(--up)}.mk.d{background:var(--down)}
-  .foot{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--muted);font-family:var(--mono)}
-  .foot .sp{flex:1}
-  .foot button{padding:8px 12px;min-height:36px;font-size:13px;background:transparent}
-  .err{color:var(--signal);font-family:var(--sans);font-weight:700;font-size:13px;line-height:1.4}
-  .empty{color:var(--muted);text-align:center;padding:44px 20px;font-size:15px;line-height:1.7}
-
-  /* 하단 고정 바 */
-  .dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(14,17,22,.96);
-    backdrop-filter:blur(12px);border-top:1px solid var(--line);
-    padding:12px 14px calc(12px + var(--safe-b))}
-  .dock-in{max-width:600px;margin:0 auto;display:flex;gap:10px}
-  .dock button{flex:none;padding:15px 16px}
-  #runBtn{flex:1;background:var(--ok);border-color:var(--ok);color:#052318;font-size:17px;font-weight:900}
-  #runBtn.on{background:var(--up);border-color:var(--up);color:#2B0806}
-
-  /* 시트 */
-  .sheet{position:fixed;inset:0;z-index:50;display:none}
-  .sheet.open{display:block}
-  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.62)}
-  .sheet-in{position:absolute;left:0;right:0;bottom:0;max-height:88vh;overflow:auto;
-    background:var(--panel);border-radius:22px 22px 0 0;border-top:1px solid var(--line);
-    padding:8px 16px calc(24px + var(--safe-b));animation:up .28s cubic-bezier(.2,.9,.3,1)}
-  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
-  .handle{width:40px;height:4px;border-radius:2px;background:#3C4553;margin:8px auto 16px}
-  .sheet h2{margin:0 0 16px;font-size:19px;font-weight:900;letter-spacing:-.02em}
-  .fld{margin-bottom:14px}
-  .sw{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);
-    border-radius:12px;padding:14px 12px;font-size:14px;font-weight:700;min-height:50px}
-  .sw input{width:20px;height:20px;accent-color:var(--signal);flex:none;padding:0;min-height:0}
-  .hint{font-size:12.5px;color:var(--muted);line-height:1.65;margin:12px 0 0}
-  .hint b{color:#B6C0CF}
-  pre.diag{margin:12px 0 0;padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;
-    font-family:var(--mono);font-size:11.5px;line-height:1.75;white-space:pre-wrap;color:var(--muted)}
-  /* 기록 */
-  .log{list-style:none;margin:0;padding:0}
-  .log li{display:flex;gap:10px;align-items:baseline;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
-  .log li:last-child{border-bottom:0}
-  .log time{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none}
-  .log b{font-family:var(--sans);font-weight:800;flex:none}
-  .log span{color:var(--muted);font-size:13px}
-  .sect-h{display:flex;align-items:center;margin:26px 0 2px;font-size:12px;font-weight:900;
-    letter-spacing:.12em;color:var(--muted)}
-  .sect-h button{margin-left:auto;padding:6px 10px;min-height:32px;font-size:12px;background:transparent}
-  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  * { box-sizing:border-box; }
+  body {
+    margin:0;
+    padding:28px 16px 48px;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:system-ui,-apple-system,
+      "Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    font-size:16px;
+  }
+  main { max-width:850px; margin:auto; }
+  h1 {
+    font-size:clamp(23px,4vw,31px);
+    margin:0 0 9px;
+    letter-spacing:-.7px;
+  }
+  .intro {
+    color:var(--muted);
+    line-height:1.6;
+    margin:0 0 25px;
+  }
+  .panel {
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:22px;
+    box-shadow:0 3px 18px rgba(20,34,60,.04);
+  }
+  .field-label {
+    display:block;
+    font-weight:750;
+    margin-bottom:10px;
+  }
+  textarea, input {
+    font:inherit;
+    color:var(--ink);
+    border:1.5px solid #c7d2e1;
+    border-radius:10px;
+    background:white;
+  }
+  textarea {
+    display:block;
+    width:100%;
+    min-height:190px;
+    padding:14px;
+    line-height:1.6;
+    resize:vertical;
+    overflow-wrap:anywhere;
+  }
+  textarea:focus, input:focus {
+    outline:3px solid #b7cbff;
+    border-color:var(--blue);
+  }
+  textarea[readonly] { background:#f8fbff; }
+  .options {
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+    margin:20px 0;
+  }
+  .target-field { flex:1 1 210px; }
+  input {
+    width:100%;
+    height:49px;
+    padding:0 14px;
+    font-weight:700;
+    letter-spacing:.5px;
+  }
+  .btn {
+    border:0;
+    border-radius:10px;
+    min-height:49px;
+    padding:12px 20px;
+    font:inherit;
+    font-weight:750;
+    cursor:pointer;
+  }
+  .btn-primary {
+    background:var(--blue);
+    color:#fff;
+  }
+  .btn-primary:hover { background:var(--blue2); }
+  .btn-secondary {
+    background:#e9efff;
+    color:var(--blue2);
+  }
+  .btn-secondary:hover { background:#dbe6ff; }
+  .btn:focus-visible {
+    outline:3px solid #97b4ff;
+    outline-offset:2px;
+  }
+  .result-head {
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .result-head .field-label { margin-bottom:0; }
+  .count {
+    color:#4b628a;
+    font-size:14px;
+  }
+  .copy-row {
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:14px;
+  }
+  #status {
+    min-height:24px;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .hint {
+    font-size:14px;
+    margin-top:18px;
+    color:var(--muted);
+    line-height:1.7;
+  }
+  @media (max-width:530px) {
+    body { padding:17px 12px 30px; }
+    .panel { padding:16px; }
+    textarea { min-height:210px; }
+    .options { gap:11px; }
+    .options .btn { flex:1 1 100%; }
+    .copy-row .btn { width:100%; }
+  }
 </style>
 </head>
 <body>
+<main>
+  <h1>KR 코드 일괄 변환기</h1>
+  <p class="intro">
+    문장을 붙여넣고 새 코드를 지정하세요.
+    문장 속 <b>kr00~kr99</b> 형식의 코드를
+    모두 바꾸고, 결과를 복사할 수 있습니다.
+  </p>
 
-<header>
-  <div class="wrap bar">
-    <span class="brand">종가 감시</span>
-    <span class="stat"><span class="dot" id="dot"></span><span id="statTxt">대기 중</span></span>
-  </div>
-</header>
+  <section class="panel">
+    <label class="field-label" for="source">
+      ① 원본 문장 붙여넣기
+    </label>
+    <textarea
+      id="source"
+      placeholder="여기에 링크나 문장을 붙여넣으세요.&#10;예: https://example.com/kr12/page&#10;예: https://example.com/KR34/page"
+      spellcheck="false"></textarea>
 
-<div class="wrap">
-  <div id="list"></div>
+    <div class="options">
+      <div class="target-field">
+        <label class="field-label" for="target">
+          ② 변경할 새 코드
+        </label>
+        <input
+          id="target"
+          type="text"
+          value="kr48"
+          maxlength="4"
+          autocapitalize="off"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="예: kr48 또는 48">
+      </div>
+      <button
+        class="btn btn-primary"
+        id="convert"
+        type="button">
+        변환하기
+      </button>
+    </div>
 
-  <div class="sect-h">알림 기록<button id="clearLog">지우기</button></div>
-  <ul class="log" id="log"></ul>
-</div>
+    <div class="result-head">
+      <label class="field-label" for="result">
+        ③ 변환 결과
+      </label>
+      <span class="count" id="count">
+        변경 0개
+      </span>
+    </div>
 
-<!-- 하단 고정 -->
-<div class="dock">
-  <div class="dock-in">
-    <button id="runBtn">감시 시작</button>
-    <button id="addOpen" aria-label="종목 추가">＋</button>
-    <button id="cfgOpen" aria-label="설정">⚙</button>
-  </div>
-</div>
+    <textarea
+      id="result"
+      readonly
+      placeholder="변환한 내용이 여기에 표시됩니다."
+      spellcheck="false"></textarea>
 
-<!-- 추가 시트 -->
-<div class="sheet" id="addSheet">
-  <div class="scrim" data-close></div>
-  <div class="sheet-in">
-    <div class="handle"></div>
-    <h2>종목 추가</h2>
-    <div class="fld">
-      <label for="symIn">종목코드 또는 티커</label>
-      <input id="symIn" placeholder="498400 또는 SPY" autocomplete="off" autocapitalize="characters" enterkeyhint="done">
+    <div class="copy-row">
+      <span
+        id="status"
+        role="status"
+        aria-live="polite"></span>
+      <button
+        class="btn btn-secondary"
+        id="copy"
+        type="button">
+        결과 전체 복사하기
+      </button>
     </div>
-    <div class="grid g2 fld">
-      <div><label for="upIn">상승 기준 %</label><input id="upIn" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="기본값"></div>
-      <div><label for="downIn">하락 기준 %</label><input id="downIn" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" placeholder="기본값"></div>
-    </div>
-    <button id="addBtn" style="width:100%;background:var(--signal);border-color:var(--signal);color:#2A2005">추가</button>
-    <p class="hint">국내는 <b>숫자 6자리</b>만 넣으면 됩니다 (498400, 005930). 종목명은 네이버 증권에서 자동으로 가져옵니다. 해외는 티커 그대로 (SPY, QQQ, AAPL).</p>
-  </div>
-</div>
 
-<!-- 설정 시트 -->
-<div class="sheet" id="cfgSheet">
-  <div class="scrim" data-close></div>
-  <div class="sheet-in">
-    <div class="handle"></div>
-    <h2>설정</h2>
-    <div class="grid g3 fld">
-      <div><label for="gUp">상승 %</label><input id="gUp" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" value="1"></div>
-      <div><label for="gDown">하락 %</label><input id="gDown" class="num" type="number" inputmode="decimal" step="0.1" min="0.1" value="1"></div>
-      <div><label for="gCool">재알림 분</label><input id="gCool" class="num" type="number" inputmode="numeric" step="1" min="1" value="10"></div>
-    </div>
-    <div class="fld">
-      <label for="gInt">조회 주기 (초)</label>
-      <input id="gInt" class="num" type="number" inputmode="numeric" step="5" min="10" value="30">
-    </div>
-    <div class="grid g3 fld">
-      <label class="sw"><input type="checkbox" id="gSound" checked>소리</label>
-      <label class="sw"><input type="checkbox" id="gNotify" checked>알림</label>
-      <label class="sw"><input type="checkbox" id="gWake" checked>화면 유지</label>
-    </div>
-    <div class="fld">
-      <label for="gProxy">우회 서버 (선택 · <code>{url}</code>)</label>
-      <input id="gProxy" placeholder="비워두면 자동으로 살아있는 경로를 찾음" autocomplete="off">
-    </div>
-    <div class="grid g2 fld">
-      <button id="diagBtn">연결 진단</button>
-      <button id="testBtn">알림 테스트</button>
-    </div>
-    <div class="grid g2 fld">
-      <button id="expBtn">설정 저장</button>
-      <button id="impBtn">설정 불러오기</button>
-    </div>
-    <input type="file" id="impFile" accept="application/json" style="display:none">
-    <pre class="diag" id="diagOut" style="display:none"></pre>
     <p class="hint">
-      <b>국내 종목</b>은 네이버 증권에서 실시간 시세를 받습니다. 네이버 증권 앱에 뜨는 숫자와 같습니다.<br>
-      <b>해외 종목</b>은 Yahoo 기준이라 15~20분 지연됩니다.<br><br>
-      <b>화면이 꺼지면 감시가 멈춥니다.</b> 휴대폰 브라우저는 화면이 꺼지거나 다른 앱으로 전환되면 타이머를 정지시킵니다. "화면 유지"를 켜고 충전기에 꽂은 채 이 화면을 띄워두세요. 화면을 다시 켜면 즉시 재조회하고, 그 사이 기준을 넘었다면 그때 알려줍니다.
+      ※ 대소문자와 관계없이 KR 뒤에
+      <b>숫자 두 자리</b>가 있는 코드를 찾습니다.
+      원본의 <b>KR / kr</b> 대소문자는
+      그대로 유지합니다.
+      다른 글자는 변경하지 않습니다.
+      변환과 복사는 이 기기 안에서 처리됩니다.
     </p>
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
-"use strict";
+(() => {
+  'use strict';
 
-/* ── 저장 ── */
-const store=(()=>{let m={},ok=false;try{localStorage.setItem("__t","1");localStorage.removeItem("__t");ok=true}catch(e){}
- return{get(k,d){try{const v=ok?localStorage.getItem(k):m[k];return v?JSON.parse(v):d}catch(e){return d}},
-        set(k,v){try{const s=JSON.stringify(v);ok?localStorage.setItem(k,s):m[k]=s}catch(e){}}}})();
+  const source = document.getElementById('source');
+  const target = document.getElementById('target');
+  const result = document.getElementById('result');
+  const count = document.getElementById('count');
+  const status = document.getElementById('status');
+  const convertBtn = document.getElementById('convert');
+  const copyBtn = document.getElementById('copy');
 
-const DEF={upPct:1,downPct:1,coolMin:10,intervalSec:30,proxy:"",sound:true,notify:true,wake:true};
-let cfg=Object.assign({},DEF,store.get("w.cfg",{}));
-let items=store.get("w.items",[]);
-let logs=store.get("w.logs",[]);
-let bestProxy=store.get("w.proxy",null);
-let timer=null,running=false,ac=null,wl=null,busy=false;
+  function convert() {
+    const typed = target.value.trim();
+    const parsed = /^(?:kr)?(\d{2})$/i.exec(typed);
 
-const $=id=>document.getElementById(id);
-const save=()=>{store.set("w.cfg",cfg);store.set("w.items",items.map(strip));store.set("w.logs",logs)};
-const strip=i=>({id:i.id,symbol:i.symbol,name:i.name,kind:i.kind,upPct:i.upPct,downPct:i.downPct});
-
-/* ── 우회 경로 ── */
-function proxies(url){
-  const e=encodeURIComponent(url),out=[];
-  if(cfg.proxy) out.push(cfg.proxy.includes("{url}")?cfg.proxy.replace("{url}",e):cfg.proxy+e);
-  const pool=[
-    "https://api.codetabs.com/v1/proxy/?quest="+e,
-    "https://api.allorigins.win/raw?url="+e,
-    "https://corsproxy.io/?url="+e,
-    "https://api.cors.lol/?url="+e,
-    "https://thingproxy.freeboard.io/fetch/"+url,
-    url
-  ];
-  if(bestProxy!=null&&pool[bestProxy]) out.push(pool[bestProxy]); // 직전에 성공한 경로 먼저
-  pool.forEach(p=>{if(!out.includes(p))out.push(p)});
-  return {list:out,pool};
-}
-// 캐시된 옛날 값을 받지 않도록 매 요청마다 고유 파라미터를 붙입니다
-const bust=u=>u+(u.includes("?")?"&":"?")+"_t="+Date.now();
-
-async function getJSON(url){
-  const {list,pool}=proxies(bust(url));
-  let last="";
-  for(const t of list){
-    try{
-      const res=await fetch(t,{cache:"no-store",headers:{"Accept":"application/json"}});
-      if(!res.ok){last="HTTP "+res.status;continue}
-      const txt=await res.text();
-      let j;try{j=JSON.parse(txt)}catch(pe){last="응답 형식 오류";continue}
-      const idx=pool.findIndex(p=>p===t);
-      if(idx>-1){bestProxy=idx;store.set("w.proxy",idx)}
-      return j;
-    }catch(e){last=/failed to fetch|load failed|networkerror/i.test(e.message||"")
-      ?"네트워크 차단":(e.message||"오류")}
-  }
-  throw new Error(last||"조회 실패");
-}
-
-/* ── 국내: 네이버 증권 ── */
-const toNum=v=>{if(v==null)return null;if(typeof v==="number")return v;
-  const n=parseFloat(String(v).replace(/,/g,""));return isFinite(n)?n:null};
-
-async function fetchKR(code){
-  const eps=[
-    "https://polling.finance.naver.com/api/realtime/domestic/stock/"+code,
-    "https://api.stock.naver.com/stock/"+code+"/basic",
-    "https://polling.finance.naver.com/api/realtime.nhn?query=SERVICE_ITEM%3A"+code
-  ];
-  let last="";
-  for(const ep of eps){
-    try{
-      const j=await getJSON(ep);
-      const q=parseKR(j);
-      if(q){q.kind="kr";q.realtime=true;q.currency="KRW";q.time=Date.now();return q}
-      last="시세 항목 없음";
-    }catch(e){last=e.message}
-  }
-  throw new Error(last||"국내 시세 조회 실패");
-}
-
-function parseKR(j){
-  // 구형 realtime.nhn 형식
-  const a=j&&j.result&&j.result.areas&&j.result.areas[0]&&j.result.areas[0].datas&&j.result.areas[0].datas[0];
-  if(a&&a.nv!=null){
-    const price=toNum(a.nv);
-    const prev=a.pcv!=null?toNum(a.pcv):price-toNum(a.cv||0);
-    if(price&&prev)return{price,prev,name:a.nm||""};
-  }
-  // 신형 형식 (datas 배열 또는 단일 객체)
-  const o=(j&&Array.isArray(j.datas)&&j.datas[0])||j;
-  if(!o||typeof o!=="object")return null;
-  const price=toNum(o.closePrice!=null?o.closePrice:o.nv);
-  if(!price)return null;
-  let prev=null;
-  let diff=toNum(o.compareToPreviousClosePrice);
-  const code=o.compareToPreviousPrice&&o.compareToPreviousPrice.code;
-  const ratio=toNum(o.fluctuationsRatio);
-  if(diff!=null){
-    // 코드 4·5는 하락. 부호가 빠져 오는 경우가 있어 코드로 방향을 확정합니다
-    if(code==="5"||code==="4") diff=-Math.abs(diff);
-    else if(code==="1"||code==="2") diff=Math.abs(diff);
-    else if(ratio!=null&&ratio<0) diff=-Math.abs(diff);
-    prev=price-diff;
-  }else if(ratio!=null&&ratio!==-100){
-    prev=price/(1+ratio/100);
-  }
-  if(!prev||!isFinite(prev))return null;
-  return{price,prev:Math.round(prev),name:o.stockName||o.itemName||o.nm||""};
-}
-
-/* ── 해외: Yahoo ── */
-async function fetchUS(sym){
-  const j=await getJSON("https://query1.finance.yahoo.com/v8/finance/chart/"+
-    encodeURIComponent(sym)+"?interval=1d&range=10d");
-  const r=j&&j.chart&&j.chart.result&&j.chart.result[0];
-  if(!r)throw new Error("종목을 찾을 수 없음");
-  const m=r.meta||{};
-  const cl=(((r.indicators||{}).quote||[{}])[0].close||[]).filter(v=>typeof v==="number");
-  const price=m.regularMarketPrice!=null?m.regularMarketPrice:cl[cl.length-1];
-  let prev=m.previousClose!=null?m.previousClose:m.chartPreviousClose;
-  if(prev==null)prev=cl[cl.length-2];
-  if(price==null||prev==null)throw new Error("가격 데이터 없음");
-  return{price,prev,name:m.shortName||sym,currency:m.currency||"USD",
-    time:m.regularMarketTime?m.regularMarketTime*1000:Date.now(),kind:"us",realtime:false};
-}
-
-const isKR=s=>/^\d{6}$/.test(s);
-const fetchQuote=s=>isKR(s)?fetchKR(s):fetchUS(s);
-
-/* ── 루프 ── */
-async function refreshAll(){
-  if(busy||!items.length)return;
-  busy=true;setStat("조회 중…");
-  for(const it of items){
-    try{
-      const q=await fetchQuote(it.symbol);
-      it.data=q;it.error=null;
-      if(!it.name&&q.name)it.name=q.name;
-      check(it);
-    }catch(e){it.error=e.message||"조회 실패"}
-    render();
-    await new Promise(r=>setTimeout(r,300));
-  }
-  busy=false;save();
-  setStat(running?"감시 중 · "+hhmmss(Date.now()):"대기 중");
-}
-
-function check(it){
-  const up=it.upPct||cfg.upPct,dn=it.downPct||cfg.downPct;
-  const chg=(it.data.price-it.data.prev)/it.data.prev*100;
-  const dir=chg>=up?"up":(chg<=-dn?"down":null);
-  if(!dir){it.lastDir=null;it.armed=null;return}
-  const now=Date.now();
-  if(it.lastDir===dir&&it.armed&&now-it.armed<cfg.coolMin*60000)return;
-  it.lastDir=dir;it.armed=now;it.fire=now;
-  const nm=it.name||it.symbol;
-  const msg=(dir==="up"?"▲ ":"▼ ")+pct(chg)+" · "+money(it.data.price,it.data.currency)+
-            " (전일 "+money(it.data.prev,it.data.currency)+")";
-  logs.unshift({t:now,nm,dir,msg});logs=logs.slice(0,60);save();renderLog();
-  if(cfg.sound)beep(dir);
-  if(navigator.vibrate)try{navigator.vibrate(dir==="up"?[80,60,80]:[200,80,200])}catch(e){}
-  if(cfg.notify&&"Notification"in window&&Notification.permission==="granted")
-    try{new Notification(nm+" "+pct(chg),{body:msg,tag:it.id,renotify:true})}catch(e){}
-}
-
-/* ── 소리 ── */
-function beep(dir){
-  try{
-    if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
-    if(ac.state==="suspended")ac.resume();
-    const seq=dir==="up"?[659,880,1175]:[659,494,370];
-    seq.forEach((f,i)=>{const t=ac.currentTime+i*.17;
-      const o=ac.createOscillator(),g=ac.createGain();
-      o.type="triangle";o.frequency.value=f;
-      g.gain.setValueAtTime(.0001,t);
-      g.gain.exponentialRampToValueAtTime(.3,t+.02);
-      g.gain.exponentialRampToValueAtTime(.0001,t+.32);
-      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.34)});
-  }catch(e){}
-}
-
-/* ── 화면 유지 ── */
-async function wake(){try{if("wakeLock"in navigator&&!wl){wl=await navigator.wakeLock.request("screen");
-  wl.addEventListener("release",()=>{wl=null})}}catch(e){}}
-function unwake(){try{if(wl){wl.release();wl=null}}catch(e){}}
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"&&running){
-    if(cfg.wake)wake();
-    refreshAll();            // 화면을 다시 켜면 곧바로 최신 시세로 갱신
-  }
-});
-
-/* ── 시작 / 정지 ── */
-function retime(){clearInterval(timer);timer=setInterval(refreshAll,Math.max(10,cfg.intervalSec)*1000)}
-async function start(){
-  if(!items.length){openSheet("addSheet");return}
-  running=true;
-  if(cfg.notify&&"Notification"in window&&Notification.permission==="default")
-    try{await Notification.requestPermission()}catch(e){}
-  if(cfg.sound)try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();ac.resume()}catch(e){}
-  if(cfg.wake)wake();
-  $("runBtn").textContent="감시 정지";$("runBtn").classList.add("on");
-  $("dot").className="dot live";
-  retime();refreshAll();
-}
-function stop(){running=false;clearInterval(timer);timer=null;unwake();
-  $("runBtn").textContent="감시 시작";$("runBtn").classList.remove("on");
-  $("dot").className="dot";setStat("대기 중")}
-$("runBtn").addEventListener("click",()=>running?stop():start());
-
-/* ── 시트 ── */
-function openSheet(id){$(id).classList.add("open")}
-function closeSheets(){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"))}
-$("addOpen").addEventListener("click",()=>{openSheet("addSheet");setTimeout(()=>$("symIn").focus(),250)});
-$("cfgOpen").addEventListener("click",()=>openSheet("cfgSheet"));
-document.querySelectorAll("[data-close]").forEach(el=>el.addEventListener("click",closeSheets));
-
-/* ── 종목 추가 ── */
-function normalize(s){
-  let v=String(s||"").trim().toUpperCase().replace(/[\s_\-.]+(KS|KQ)$/,"");
-  const m=v.match(/^A?(\d{6})$/);          // 토스식 A498400 도 허용
-  return m?m[1]:v;
-}
-function addItem(){
-  const sym=normalize($("symIn").value);
-  if(!sym)return $("symIn").focus();
-  if(items.some(i=>i.symbol===sym)){alert("이미 감시 중입니다.");return}
-  const u=parseFloat($("upIn").value),d=parseFloat($("downIn").value);
-  const it={id:"i"+Date.now().toString(36),symbol:sym,name:"",kind:isKR(sym)?"kr":"us",
-    upPct:isFinite(u)&&u>0?u:null,downPct:isFinite(d)&&d>0?d:null,
-    data:null,error:null,lastDir:null,armed:null};
-  items.push(it);
-  $("symIn").value="";$("upIn").value="";$("downIn").value="";
-  closeSheets();save();render();
-  fetchQuote(sym).then(q=>{it.data=q;it.error=null;if(q.name)it.name=q.name;check(it)})
-    .catch(e=>{it.error=e.message}).finally(()=>{save();render()});
-}
-$("addBtn").addEventListener("click",addItem);
-$("symIn").addEventListener("keydown",e=>{if(e.key==="Enter")addItem()});
-
-/* ── 포맷 ── */
-const hhmmss=t=>new Date(t).toLocaleTimeString("ko-KR",{hour12:false});
-const pct=v=>(v>0?"+":"")+v.toFixed(2)+"%";
-function money(v,cur){if(v==null)return"—";const krw=cur==="KRW";
-  return v.toLocaleString("ko-KR",{minimumFractionDigits:krw?0:2,maximumFractionDigits:krw?0:2})}
-const setStat=s=>{$("statTxt").textContent=s};
-const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-/* ── 렌더 ── */
-function render(){
-  const el=$("list");
-  if(!items.length){
-    el.innerHTML='<p class="empty">감시할 종목이 없습니다.<br>아래 <b>＋</b> 버튼으로 추가하세요.</p>';
-    return;
-  }
-  el.innerHTML=items.map(it=>{
-    const up=it.upPct||cfg.upPct,dn=it.downPct||cfg.downPct,d=it.data;
-    const chg=d?(d.price-d.prev)/d.prev*100:null;
-    const c=chg==null?"f":(chg>0?"u":chg<0?"d":"f");
-    const hit=chg==null?"":(chg>=up?" hitUp":(chg<=-dn?" hitDown":""));
-    const fr=it.fire&&Date.now()-it.fire<4000?" fire":"";
-    const span=Math.max(up,dn)*1.7;
-    const mp=chg==null?50:Math.min(96,Math.max(4,50+chg/span*50));
-    const upP=Math.min(96,50+up/span*50), dnP=Math.max(4,50-dn/span*50);
-    const df=d?d.price-d.prev:null;
-    const badge=d?(d.realtime?'<span class="badge rt">실시간</span>':'<span class="badge dl">지연</span>'):"";
-    return '<div class="card'+hit+fr+'">'+
-      '<div class="row1"><div><div class="nm">'+esc(it.name||it.symbol)+'</div>'+
-        '<div class="cd">'+esc(it.symbol)+badge+'</div></div>'+
-        '<div class="pct '+c+'">'+(chg==null?"—":pct(chg))+
-        '<i>'+(df==null?"":(df>0?"+":"")+money(df,d.currency))+'</i></div></div>'+
-      '<div class="px"><div><dt>전일 종가</dt><dd>'+(d?money(d.prev,d.currency):"—")+'</dd></div>'+
-        '<div><dt>현재가</dt><dd class="'+c+'">'+(d?money(d.price,d.currency):"—")+'</dd></div></div>'+
-      '<div class="gg"><div class="tr"></div><div class="zr"></div>'+
-        '<div class="zn" style="left:'+dnP+'%"><b>-'+dn+'%</b></div>'+
-        '<div class="zn" style="left:'+upP+'%"><b>+'+up+'%</b></div>'+
-        '<div class="mk '+c+'" style="left:'+mp+'%"></div></div>'+
-      '<div class="foot">'+(it.error?'<span class="err">'+esc(it.error)+'</span>':
-        '<span>'+(d?hhmmss(d.time):"조회 대기")+'</span>')+
-        '<span class="sp"></span><button data-del="'+it.id+'">삭제</button></div></div>';
-  }).join("");
-  el.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{
-    items=items.filter(i=>i.id!==b.dataset.del);save();render()}));
-}
-function renderLog(){
-  const el=$("log");
-  if(!logs.length){el.innerHTML='<li style="color:var(--muted);font-size:13px;padding:12px 0">아직 알림이 없습니다.</li>';return}
-  el.innerHTML=logs.map(l=>'<li><time>'+hhmmss(l.t)+'</time><b class="'+(l.dir==="up"?"u":"d")+
-    '">'+esc(l.nm)+'</b><span>'+esc(l.msg)+'</span></li>').join("");
-}
-
-/* ── 설정 바인딩 ── */
-const B=[["gUp","upPct","n"],["gDown","downPct","n"],["gCool","coolMin","n"],["gInt","intervalSec","n"],
-         ["gProxy","proxy","t"],["gSound","sound","b"],["gNotify","notify","b"],["gWake","wake","b"]];
-function loadCfg(){B.forEach(([id,k,t])=>{const e=$(id);if(!e)return;
-  t==="b"?e.checked=!!cfg[k]:e.value=cfg[k]})}
-B.forEach(([id,k,t])=>{const e=$(id);if(!e)return;
-  e.addEventListener("change",()=>{
-    if(t==="b")cfg[k]=e.checked;
-    else if(t==="n"){const n=parseFloat(e.value);cfg[k]=isFinite(n)&&n>0?n:DEF[k];e.value=cfg[k]}
-    else cfg[k]=e.value.trim();
-    if(k==="intervalSec"&&running)retime();
-    if(k==="wake")cfg.wake&&running?wake():unwake();
-    save();render()})});
-
-/* ── 보조 ── */
-$("clearLog").addEventListener("click",()=>{logs=[];save();renderLog()});
-$("testBtn").addEventListener("click",async()=>{
-  if(cfg.notify&&"Notification"in window&&Notification.permission==="default")
-    try{await Notification.requestPermission()}catch(e){}
-  if(cfg.sound)beep("up");
-  if(navigator.vibrate)try{navigator.vibrate([80,60,80])}catch(e){}
-  if(cfg.notify&&"Notification"in window&&Notification.permission==="granted")
-    try{new Notification("종가 감시",{body:"알림이 정상 작동합니다."})}catch(e){}
-  logs.unshift({t:Date.now(),nm:"테스트",dir:"up",msg:"알림 테스트를 실행했습니다."});
-  logs=logs.slice(0,60);save();renderLog();
-});
-$("diagBtn").addEventListener("click",async()=>{
-  const out=$("diagOut");out.style.display="block";out.textContent="확인 중…\n\n";
-  const tests=[
-    ["네이버 실시간","https://polling.finance.naver.com/api/realtime/domestic/stock/005930","closePrice|nv"],
-    ["네이버 기본","https://api.stock.naver.com/stock/005930/basic","closePrice"],
-    ["Yahoo","https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=5d","chart"]
-  ];
-  for(const [nm,url,key]of tests){
-    const {list}=proxies(bust(url));let done=false;
-    for(let i=0;i<list.length&&!done;i++){
-      try{
-        const t0=performance.now();
-        const r=await fetch(list[i],{cache:"no-store"});
-        const b=await r.text();
-        if(r.ok&&new RegExp(key).test(b)){
-          out.textContent+="정상  "+nm+"  ("+Math.round(performance.now()-t0)+"ms, 경로 "+(i+1)+")\n";
-          done=true;
-        }
-      }catch(e){}
+    if (!parsed) {
+      status.textContent =
+        '새 코드를 kr48 또는 48처럼 입력해 주세요 (숫자 두 자리).';
+      target.focus();
+      return false;
     }
-    if(!done)out.textContent+="차단  "+nm+"  모든 경로 실패\n";
-  }
-  out.textContent+="\n국내 종목은 네이버 항목 중 하나만 정상이면 됩니다.\n"+
-    "모두 차단이면 이 파일을 폰에 내려받아 브라우저에서 직접 열었는지 확인하세요.";
-});
-$("expBtn").addEventListener("click",()=>{
-  const b=new Blob([JSON.stringify({cfg,items:items.map(strip)},null,2)],{type:"application/json"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(b);
-  a.download="watch-settings.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-});
-$("impBtn").addEventListener("click",()=>$("impFile").click());
-$("impFile").addEventListener("change",e=>{
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const j=JSON.parse(r.result);
-    if(j.cfg)cfg=Object.assign({},DEF,j.cfg);
-    if(Array.isArray(j.items))items=j.items.map((x,n)=>({id:"i"+Date.now().toString(36)+n,
-      symbol:x.symbol,name:x.name||"",kind:x.kind||(isKR(x.symbol)?"kr":"us"),
-      upPct:x.upPct||null,downPct:x.downPct||null,data:null,error:null,lastDir:null,armed:null}));
-    save();loadCfg();render()}catch(err){alert("파일을 읽을 수 없습니다: "+err.message)}};
-  r.readAsText(f);e.target.value="";
-});
 
-/* ── 초기화 ── */
-loadCfg();render();renderLog();
-setInterval(()=>{const s=items.filter(i=>i.fire&&Date.now()-i.fire>=4000);
-  if(s.length){s.forEach(i=>{i.fire=null});render()}},1000);
+    if (!source.value) {
+      result.value = '';
+      count.textContent = '변경 0개';
+      status.textContent = '먼저 원본 문장을 붙여넣어 주세요.';
+      source.focus();
+      return false;
+    }
+
+    const digits = parsed[1];
+    let changes = 0;
+
+    const converted = source.value.replace(
+      /kr\d{2}(?!\d)/gi,
+      match => {
+        const prefix = match.slice(0, 2);
+        const replacement = prefix + digits;
+        if (replacement !== match) changes++;
+        return replacement;
+      }
+    );
+
+    result.value = converted;
+    count.textContent =
+      '실제 변경 ' +
+      changes.toLocaleString('ko-KR') + '개';
+
+    status.textContent = changes
+      ? '변환 완료. 복사 버튼을 누르세요.'
+      : '완료. 변경할 코드가 없거나 이미 같은 코드입니다.';
+
+    return true;
+  }
+
+  async function copyResult() {
+    if (!result.value) {
+      status.textContent = '먼저 변환하기를 눌러 주세요.';
+      return;
+    }
+
+    try {
+      if (navigator.clipboard &&
+          navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(result.value);
+      } else {
+        throw new Error('clipboard API unavailable');
+      }
+      status.textContent =
+        '복사 완료! 원하는 곳에 붙여넣으세요.';
+    } catch (err) {
+      result.focus();
+      result.select();
+
+      let copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch (_error) {
+        copied = false;
+      }
+
+      status.textContent = copied
+        ? '복사 완료! 원하는 곳에 붙여넣으세요.'
+        : '결과가 선택되었습니다. 복사 메뉴 또는 Ctrl+C를 눌러 주세요.';
+    }
+  }
+
+  convertBtn.addEventListener('click', convert);
+  copyBtn.addEventListener('click', copyResult);
+
+  target.addEventListener('keydown', event => {
+    if (event.key === 'Enter') convert();
+  });
+})();
 </script>
 </body>
 </html>
